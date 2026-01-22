@@ -23,6 +23,9 @@ export const siteConfig = {
       en: "Tashkent city, Uzbekistan",
     },
   },
+  yandexMetrica: {
+    id: "106389176", 
+  },
 }
 
 interface SEOProps {
@@ -134,9 +137,8 @@ export function generateSEO({
       },
     },
     verification: {
-      // Add your verification codes here
-      // google: "your-google-verification-code",
-      // yandex: "your-yandex-verification-code",
+      google: "cU6tikbNhnhP92IpPyHLxv5C-pbivl0BX4I9gfcNq58",
+      yandex: "497756f2706d3b49",
     },
   }
 

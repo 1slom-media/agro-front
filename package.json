@@ -6,7 +6,7 @@
     "build": "next build",
     "dev": "next dev",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "next start -p 2000"
   },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",

@@ -5,6 +5,7 @@ import { Analytics } from "@vercel/analytics/next"
 import { I18nProvider } from "@/lib/i18n-context"
 import { StructuredData } from "@/components/structured-data"
 import { GeminiChat } from "@/components/gemini-chat"
+import { YandexMetrica } from "@/components/yandex-metrica"
 import { generateSEO, siteConfig } from "@/lib/seo"
 import { generateOrganizationSchema, generateWebSiteSchema } from "@/lib/structured-data"
 import "./globals.css"
@@ -62,6 +63,9 @@ export default function RootLayout({
           <GeminiChat />
         </I18nProvider>
         <Analytics />
+        {siteConfig.yandexMetrica.id && (
+          <YandexMetrica ymId={siteConfig.yandexMetrica.id} />
+        )}
       </body>
     </html>
   )
