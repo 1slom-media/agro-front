@@ -1,0 +1,23 @@
+<svg width="240" height="80" viewBox="0 0 240 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Left stem with multiple leaves -->
+    <path d="M15 50 Q10 35 20 25 Q25 20 35 23" stroke="#1a5d1a" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M20 25 Q15 15 25 10 Q30 8 35 13" stroke="#1a5d1a" stroke-width="3.5" fill="#4ade80" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M22 23 Q18 17 26 15" stroke="#1a5d1a" stroke-width="3" fill="#4ade80" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M35 23 Q40 17 45 20" stroke="#1a5d1a" stroke-width="3" fill="#4ade80" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Right stem with leaves -->
+    <path d="M110 55 Q120 40 130 35 Q135 33 140 40" stroke="#1a5d1a" stroke-width="3.5" fill="#4ade80" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M115 53 Q125 38 135 33" stroke="#1a5d1a" stroke-width="3" fill="#4ade80" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- Contoured field/hills -->
+    <path d="M30 55 Q40 50 50 53 Q60 55 70 53 Q80 51 90 55" stroke="#4ade80" stroke-width="4" fill="none" stroke-linecap="round"/>
+    <path d="M35 60 Q45 55 55 58 Q65 60 75 58 Q85 56 95 60" stroke="#22c55e" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+    <path d="M40 65 Q50 60 60 63 Q70 65 80 63 Q90 61 100 65" stroke="#16a34a" stroke-width="3" fill="none" stroke-linecap="round"/>
+    
+    <!-- Sun with highlight -->
+    <circle cx="80" cy="20" r="11" fill="#fbbf24" stroke="#f59e0b" stroke-width="1.2"/>
+    <circle cx="78" cy="18" r="3.5" fill="#fef3c7" opacity="0.95"/>
+  
+  <!-- Text SUNAGRO -->
+  <text x="120" y="70" font-family="'Arial Black', Arial, sans-serif" font-size="28" font-weight="900" fill="#1a5d1a" text-anchor="middle" letter-spacing="5">SUNAGRO</text>
+</svg>
