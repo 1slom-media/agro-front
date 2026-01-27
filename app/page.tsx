@@ -105,10 +105,14 @@ export default function HomePage() {
           if (sizeItem) {
             sizeLabel = sizeItem.label?.[locale] || sizeItem.label?.ru || sizeLabel
           } else {
-            sizeLabel = sizeLabel.includes("м") ? sizeLabel : `${sizeLabel} ${t.common.m}`
+            // Check if already has unit (м, m, М, M at the end)
+            const hasUnit = /[мmМM]\s*$/.test(sizeLabel.trim())
+            sizeLabel = hasUnit ? sizeLabel : `${sizeLabel} ${t.common.m}`
           }
         } else if (sizeLabel) {
-          sizeLabel = sizeLabel.includes("м") ? sizeLabel : `${sizeLabel} ${t.common.m}`
+          // Check if already has unit
+          const hasUnit = /[мmМM]\s*$/.test(sizeLabel.trim())
+          sizeLabel = hasUnit ? sizeLabel : `${sizeLabel} ${t.common.m}`
         } else if (width && length) {
           sizeLabel = `${width} × ${length}`
         }

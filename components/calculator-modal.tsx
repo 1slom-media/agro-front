@@ -200,18 +200,42 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
         return
       }
 
-      const productWidth = Number.parseFloat(selectedProduct.specifications?.width || "3.2")
-      const productLength = Number.parseFloat(selectedProduct.specifications?.length || "100")
+      // Parse product dimensions from specifications
+      // Size format: "3,2х500" or width/length separately
+      let productWidth = 0
+      let productLength = 0
+      
+      if (selectedProduct.specifications?.size) {
+        // Parse size like "3,2х500" or "3.2x500"
+        const sizeMatch = selectedProduct.specifications.size.match(/([\d,\.]+)\s*[xх]\s*(\d+)/i)
+        if (sizeMatch) {
+          productWidth = parseFloat(sizeMatch[1].replace(',', '.'))
+          productLength = parseFloat(sizeMatch[2])
+        }
+      }
+      
+      // Fallback to separate width/length fields if size not available
+      if (productWidth === 0 || productLength === 0) {
+        productWidth = Number.parseFloat(selectedProduct.specifications?.width?.replace(',', '.') || "3.2")
+        productLength = Number.parseFloat(selectedProduct.specifications?.length?.replace(',', '.') || "100")
+      }
 
       if (productWidth <= 0 || productLength <= 0) {
         alert(locale === "uz" ? "Mahsulot o'lchamlari noto'g'ri" : locale === "ru" ? "Неверные размеры продукта" : "Invalid product dimensions")
         return
       }
 
+      // Calculate: how many rolls needed along the length direction
+      // If area length is 1000m and product length is 500m, we need 2 rolls
+      const rollsNeededForLength = Math.ceil(areaLength / productLength)
+      
+      // Calculate: how many rows needed along the width direction
+      // If area width is 3.2m and product width is 3.2m, we need 1 row
+      const rowsNeededForWidth = Math.ceil(areaWidth / productWidth)
+      
+      // Total rolls = rolls along length * rows along width
+      const rollCount = rollsNeededForLength * rowsNeededForWidth
       const area = areaLength * areaWidth
-      const rollsPerRow = Math.ceil(areaLength / productLength)
-      const rowsNeeded = Math.ceil(areaWidth / productWidth)
-      const rollCount = rollsPerRow * rowsNeeded
       const totalPrice = rollCount * selectedProduct.price
 
       setResult({
@@ -307,11 +331,15 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
                   } />
                 </SelectTrigger>
                 <SelectContent>
-                  {filteredProducts.map((product) => (
-                    <SelectItem key={product.id} value={product.id}>
-                      {product.name?.[locale] || product.name?.ru} - {formatPrice(product.price)} {t.common.sum}
-                    </SelectItem>
-                  ))}
+                  {filteredProducts.map((product) => {
+                    const productName = product.name?.[locale] || product.name?.ru || ""
+                    const displayName = productName.length > 40 ? productName.slice(0, 40) + "..." : productName
+                    return (
+                      <SelectItem key={product.id} value={product.id} className="truncate">
+                        <span className="truncate block">{displayName} - {formatPrice(product.price)} {t.common.sum}</span>
+                      </SelectItem>
+                    )
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -339,7 +367,7 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="length" className="text-xs text-muted-foreground">
-                        {t.calculator.length} (м)
+                        {t.calculator.length}
                       </Label>
                       <Input
                         id="length"
@@ -352,7 +380,7 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="width" className="text-xs text-muted-foreground">
-                        {t.calculator.width} (м)
+                        {t.calculator.width}
                       </Label>
                       <Input
                         id="width"

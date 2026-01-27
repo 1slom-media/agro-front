@@ -1,0 +1,30 @@
+{
+  "name": {
+    "uz": "Agrotex agrovolokno 17 g/m² (3,2x500m) oq",
+    "ru": "Агротекс агроволокно 17 г/м² (3,2х500м) белое",
+    "en": "Agrotex agrofiber 17 g/m² (3.2x500m) white"
+  },
+  "slug": "agrotex-agrovolokno-17-32x500",
+  "description": {
+    "uz": "Agrotex brendining yuqori sifatli agrovoloknosi. 17 g/m² zichlik, 3,2 m kenglik, 500 m uzunlik. Issiqxona va ochiq maydonlar uchun. -2°C gacha sovuqdan himoya qiladi. Optimal narx va sifat.",
+    "ru": "Высококачественное агроволокно бренда Агротекс. Плотность 17 г/м², ширина 3,2м, длина 500м. Для теплиц и открытого грунта. Защищает от заморозков до -2°С. Оптимальное соотношение цены и качества.",
+    "en": "High-quality agrofiber from Agrotex brand. Density 17 g/m², width 3.2m, length 500m. For greenhouses and open fields. Protects from frost down to -2°C. Optimal price and quality ratio."
+  },
+  "price": 1600000,
+  "specifications": {
+    "density": "17 g/m²",
+    "width": "3,2 m",
+    "length": "500 m",
+    "size": "3,2x500 m",
+    "color": "white",
+    "usage": ["greenhouse", "open_field"],
+    "temperature": "-2°C gacha",
+    "brand": "Agrotex"
+  },
+  "isActive": true,
+  "images": {
+    "image1": {
+      "url": "/white-agrofiber-roll-agricultural-fabric.jpg"
+    }
+  }
+}

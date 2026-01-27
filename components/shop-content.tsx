@@ -265,12 +265,14 @@ export function ShopContent() {
                       if (sizeItem) {
                         sizeLabel = sizeItem.label?.[locale] || sizeItem.label?.ru || sizeLabel
                       } else {
-                        // If not found in dictionary, use the value as is (e.g., "1,3х200 м")
-                        sizeLabel = sizeLabel.includes("м") ? sizeLabel : `${sizeLabel} ${t.common.m}`
+                        // If not found in dictionary, check if already has unit
+                        const hasUnit = /[мmМM]\s*$/.test(sizeLabel.trim())
+                        sizeLabel = hasUnit ? sizeLabel : `${sizeLabel} ${t.common.m}`
                       }
                     } else if (sizeLabel) {
-                      // If no dictionary but size exists, format it
-                      sizeLabel = sizeLabel.includes("м") ? sizeLabel : `${sizeLabel} ${t.common.m}`
+                      // If no dictionary but size exists, check if already has unit
+                      const hasUnit = /[мmМM]\s*$/.test(sizeLabel.trim())
+                      sizeLabel = hasUnit ? sizeLabel : `${sizeLabel} ${t.common.m}`
                     } else if (width && length) {
                       // Fallback to width × length format
                       sizeLabel = `${width} × ${length}`

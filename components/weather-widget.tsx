@@ -59,7 +59,7 @@ export function WeatherWidget() {
         // Try to fetch real weather data
         // Note: In production, store API key in environment variables
         // For now, we'll use simulated data as a fallback
-        const useRealAPI = false; // Set to true when you have an API key
+        const useRealAPI = true; // Set to true when you have an API key
  
         if (useRealAPI) {
           const API_KEY = process.env.NEXT_PUBLIC_OPENWEATHER_API_KEY || "";

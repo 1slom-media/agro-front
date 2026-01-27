@@ -76,7 +76,14 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
           <div className="flex items-center gap-1.5 mb-3 sm:mb-4">
             <div className="w-1 h-1 rounded-full bg-primary/60" />
             <p className="text-xs sm:text-sm text-muted-foreground font-medium">
-              {(product as any).size} {t.common.m}
+              {(() => {
+                const size = (product as any).size || ""
+                // If size already contains "м" or "m", don't add it again
+                if (size.includes("м") || size.includes("m") || size.includes("М") || size.includes("M")) {
+                  return size
+                }
+                return `${size} ${t.common.m}`
+              })()}
             </p>
           </div>
         ) : (

@@ -27,6 +27,7 @@ interface ApiProduct {
   name: { uz: string; ru: string; en: string }
   slug: string
   price: number
+  categoryId?: string
   images?: {
     image1?: { url?: string; base64?: string }
   }
@@ -36,6 +37,8 @@ interface ApiProduct {
     density?: string
     width?: string
     length?: string
+    size?: string
+    sellType?: string
     usage?: UsageType[]
     color?: "white" | "black"
   }
@@ -290,7 +293,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                 )}
               </div>
 
-              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-2">{product.name[locale]}</h1>
+              <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-2 line-clamp-2 break-words">{product.name[locale]}</h1>
 
               <p className="text-muted-foreground mb-4 text-sm">{product.description[locale]}</p>
 
@@ -483,7 +486,13 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
       <CalculatorModal 
         open={calculatorOpen} 
         onOpenChange={setCalculatorOpen} 
-        initialUsage={product.specifications?.usage?.[0] || "greenhouse"} 
+        initialCategory={product.categoryId}
+        initialProduct={{
+          id: product.id,
+          price: product.price,
+          categoryId: product.categoryId,
+          specifications: product.specifications,
+        }}
       />
     </div>
   )

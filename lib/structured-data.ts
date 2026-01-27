@@ -170,11 +170,11 @@ export function generateProductSchema(
   let imageUrl = ''
   if (product.image) {
     imageUrl = product.image.startsWith('http') ? product.image : `${siteConfig.url}${product.image}`
-  } else if (product.images?.image1?.url) {
+  } else if ('images' in product && product.images?.image1?.url) {
     imageUrl = product.images.image1.url.startsWith('http') 
       ? product.images.image1.url 
       : `${siteConfig.url}${product.images.image1.url}`
-  } else if (product.images?.image1?.base64) {
+  } else if ('images' in product && product.images?.image1?.base64) {
     imageUrl = product.images.image1.base64
   } else {
     imageUrl = `${siteConfig.url}/placeholder.svg`
