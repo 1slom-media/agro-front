@@ -88,6 +88,7 @@ export function ShopContent() {
         id: product.id,
         price: product.price,
         categoryId: (product as any).categoryId || (product as any).category?.id,
+        specifications: product.specifications || {},
       })
       if ((product as any).categoryId || (product as any).category?.id) {
         setCalculatorCategory((product as any).categoryId || (product as any).category?.id)

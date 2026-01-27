@@ -222,6 +222,7 @@ export default function HomePage() {
                             id: apiProduct.id,
                             price: apiProduct.price,
                             categoryId: (apiProduct as any).categoryId || (apiProduct as any).category?.id,
+                            specifications: apiProduct.specifications || {},
                           }
                         )
                       } else {
