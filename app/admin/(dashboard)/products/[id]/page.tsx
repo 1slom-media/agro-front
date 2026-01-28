@@ -36,14 +36,17 @@ export default function EditProductPage() {
   const [formData, setFormData] = useState({
     name: { uz: "", ru: "", en: "" },
     description: { uz: "", ru: "", en: "" },
+    slug: "",
     categoryId: "",
     price: "",
+    order: 0,
     isActive: true,
     specifications: {
       temperature: "",
       density: "",
       color: "",
       size: "",
+      sellType: "",
     },
     images: {
       image1: { url: "", base64: "" },
@@ -86,8 +89,10 @@ export default function EditProductPage() {
       setFormData({
         name: product.name,
         description: product.description,
+        slug: product.slug || "",
         categoryId: product.categoryId || "",
         price: product.price?.toString() || "",
+        order: product.order || 0,
         isActive: product.isActive,
         specifications: {
           temperature: product.specifications?.temperature || "",
@@ -144,10 +149,16 @@ export default function EditProductPage() {
     setLoading(true)
 
     try {
-      const payload = {
+      const payload: any = {
         ...formData,
         price: formData.price ? parseFloat(formData.price) : undefined,
       }
+      
+      // Always include categoryId if it exists (required field)
+      if (formData.categoryId && formData.categoryId.trim() !== '') {
+        payload.categoryId = formData.categoryId.trim()
+      }
+      
       await productsApi.update(params.id as string, payload)
       toast({
         title: t.common.success,
@@ -404,6 +415,16 @@ export default function EditProductPage() {
 
             <div className="grid gap-4 md:grid-cols-3">
               <div className="space-y-2">
+                <Label htmlFor="slug">{t.products.slug}</Label>
+                <Input
+                  id="slug"
+                  value={formData.slug}
+                  onChange={(e) => setFormData({ ...formData, slug: e.target.value })}
+                  placeholder="product-slug"
+                  required
+                />
+              </div>
+              <div className="space-y-2">
                 <Label htmlFor="category">{t.products.category}</Label>
                 <Select value={formData.categoryId} onValueChange={(value) => setFormData({ ...formData, categoryId: value })}>
                   <SelectTrigger>
@@ -426,6 +447,19 @@ export default function EditProductPage() {
                   step="0.01"
                   value={formData.price}
                   onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="order">{locale === 'uz' ? 'Tartib' : 'Порядок'}</Label>
+                <Input
+                  id="order"
+                  type="number"
+                  value={formData.order}
+                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
                 />
               </div>
               <div className="space-y-2">

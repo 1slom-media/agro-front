@@ -9,6 +9,34 @@ import { CalculatorModal } from "@/components/calculator-modal"
 import { useI18n } from "@/lib/i18n-context"
 import { blogApi } from "@/lib/api-client"
 import { ArrowRight, Calendar } from "lucide-react"
+// YouTube URL conversion utility
+function convertToYouTubeEmbedUrl(url: string): string {
+  if (!url) return '';
+  
+  // Remove any whitespace
+  url = url.trim();
+  
+  // Extract video ID from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}`;
+    }
+  }
+  
+  // If already in embed format, return as is
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  return url;
+}
 
 interface ApiBlogPost {
   id: string
@@ -17,6 +45,7 @@ interface ApiBlogPost {
   excerpt?: { uz: string; ru: string; en: string }
   featuredImageBase64?: string
   featuredImageUrl?: string
+  youtubeLink?: string
   publishedAt?: string
   isPublished: boolean
 }
@@ -40,6 +69,7 @@ export default function BlogPage() {
         id: p.id,
         slug: p.slug,
         image: p.featuredImageBase64 || p.featuredImageUrl || "/placeholder.svg",
+        youtubeLink: p.youtubeLink,
         title: p.title,
         excerpt: p.excerpt || { uz: "", ru: "", en: "" },
         date: p.publishedAt || new Date().toISOString(),
@@ -72,12 +102,22 @@ export default function BlogPage() {
               >
                   <Link href={`/blog/${post.slug}`} className="cursor-pointer">
                   <div className="relative h-48 overflow-hidden">
-                    <Image
-                      src={post.image || "/placeholder.svg"}
-                      alt={post.title[locale]}
-                      fill
-                      className="object-cover hover:scale-105 transition-transform duration-300"
-                    />
+                    {post.youtubeLink ? (
+                      <iframe
+                        src={convertToYouTubeEmbedUrl(post.youtubeLink)}
+                        className="w-full h-full"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        title={post.title[locale]}
+                      />
+                    ) : (
+                      <Image
+                        src={post.image || "/placeholder.svg"}
+                        alt={post.title[locale]}
+                        fill
+                        className="object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    )}
                   </div>
                 </Link>
                 <div className="p-5">

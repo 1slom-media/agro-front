@@ -43,6 +43,7 @@ interface ApiBlogPost {
   excerpt?: { uz: string; ru: string; en: string }
   featuredImageBase64?: string
   featuredImageUrl?: string
+  youtubeLink?: string
   publishedAt?: string
   isPublished: boolean
 }
@@ -139,6 +140,7 @@ export default function HomePage() {
         id: p.id,
         slug: p.slug,
         image: p.featuredImageBase64 || p.featuredImageUrl || "/placeholder.svg",
+        youtubeLink: p.youtubeLink,
         title: p.title,
         excerpt: p.excerpt || { uz: "", ru: "", en: "" },
         date: p.publishedAt || new Date().toISOString(),

@@ -333,6 +333,14 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                         </p>
                       </div>
                     )}
+                    {product.specifications.temperature && (
+                      <div>
+                        <span className="text-muted-foreground">{locale === 'uz' ? 'Harorat' : 'Температура'}:</span>
+                        <p className="font-medium">
+                          {locale === 'uz' ? 'до' : locale === 'ru' ? 'до' : 'up to'} {product.specifications.temperature}°C
+                        </p>
+                      </div>
+                    )}
                   </div>
                 </div>
               )}

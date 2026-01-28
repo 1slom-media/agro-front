@@ -31,6 +31,7 @@ export default function EditBlogPage() {
     slug: "",
     featuredImageUrl: "",
     featuredImageBase64: "",
+    youtubeLink: "",
     isPublished: false,
     publishedAt: undefined as Date | undefined,
     seo: {
@@ -58,6 +59,7 @@ export default function EditBlogPage() {
         slug: post.slug,
         featuredImageUrl: post.featuredImageUrl || "",
         featuredImageBase64: post.featuredImageBase64 || "",
+        youtubeLink: post.youtubeLink || "",
         isPublished: post.isPublished,
         publishedAt: post.publishedAt ? new Date(post.publishedAt) : undefined,
         seo: post.seo || {
@@ -306,6 +308,18 @@ export default function EditBlogPage() {
               </div>
 
               <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="youtubeLink">{locale === 'uz' ? 'YouTube video link' : locale === 'ru' ? 'Ссылка на YouTube видео' : 'YouTube Video Link'}</Label>
+                  <Input
+                    id="youtubeLink"
+                    value={formData.youtubeLink}
+                    onChange={(e) => setFormData({ ...formData, youtubeLink: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    {locale === 'uz' ? 'Agar YouTube video link bo\'lsa, rasm o\'rniga video ko\'rsatiladi' : locale === 'ru' ? 'Если есть ссылка на YouTube видео, видео будет показано вместо изображения' : 'If YouTube video link is provided, video will be shown instead of image'}
+                  </p>
+                </div>
                 <Label>{t.blog.image}</Label>
                 {formData.featuredImageBase64 || formData.featuredImageUrl ? (
                   <div className="relative w-full max-w-md h-64 rounded-lg overflow-hidden bg-muted">

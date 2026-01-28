@@ -4,6 +4,34 @@ import Link from "next/link"
 import { useI18n } from "@/lib/i18n-context"
 import type { BlogPost } from "@/lib/blog"
 import { ArrowRight, Calendar } from "lucide-react"
+// YouTube URL conversion utility
+function convertToYouTubeEmbedUrl(url: string): string {
+  if (!url) return '';
+  
+  // Remove any whitespace
+  url = url.trim();
+  
+  // Extract video ID from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}`;
+    }
+  }
+  
+  // If already in embed format, return as is
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  return url;
+}
 
 interface BlogCardProps {
   post: BlogPost
@@ -25,17 +53,29 @@ export function BlogCard({ post }: BlogCardProps) {
       {/* Hover glow effect */}
       <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none border-2 border-primary/30" />
 
-      {/* Image */}
+      {/* Image or YouTube Video */}
       <Link href={`/blog/${post.slug}`} className="relative cursor-pointer">
         <div className="relative h-48 sm:h-52 md:h-56 overflow-hidden bg-gradient-to-br from-secondary to-secondary/50">
-          <img
-            src={post.image || "/placeholder.svg"}
-            alt={post.title[locale]}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-          />
-          {/* Gradient overlays */}
-          <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
-          <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+          {post.youtubeLink ? (
+            <iframe
+              src={convertToYouTubeEmbedUrl(post.youtubeLink)}
+              className="w-full h-full"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+              allowFullScreen
+              title={post.title[locale]}
+            />
+          ) : (
+            <>
+              <img
+                src={post.image || "/placeholder.svg"}
+                alt={post.title[locale]}
+                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+              />
+              {/* Gradient overlays */}
+              <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />
+              <div className="absolute inset-0 bg-primary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+            </>
+          )}
 
           {/* Date badge */}
           <div className="absolute bottom-3 left-3 flex items-center gap-1.5 px-3 py-1.5 bg-background/90 backdrop-blur-md rounded-full shadow-lg border border-border/50">

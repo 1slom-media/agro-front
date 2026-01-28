@@ -21,7 +21,7 @@ export const translations = {
     // Hero
     hero: {
       title: "Professional Agrovolokno",
-      subtitle: "Hosilingizni himoya qiling",
+      subtitle: "Biz bilan hosildorlikni oshiring",
       description: "Issiqxonalar, ochiq maydonlar va mulchlash uchun yuqori sifatli qoplama materiallar",
       ctaCalculator: "Kalkulyator",
       ctaCatalog: "Katalog",
@@ -144,7 +144,7 @@ export const translations = {
     // Hero
     hero: {
       title: "Профессиональное агроволокно",
-      subtitle: "Защитите свой урожай",
+      subtitle: "Повышайте урожайность вместе с нами",
       description: "Высококачественные укрывные материалы для теплиц, открытого грунта и мульчирования",
       ctaCalculator: "Калькулятор",
       ctaCatalog: "Каталог",
@@ -267,7 +267,7 @@ export const translations = {
     // Hero
     hero: {
       title: "Professional Agrofiber",
-      subtitle: "Protect Your Harvest",
+      subtitle: "Increase Your Yield With Us",
       description: "High-quality cover materials for greenhouses, open fields, and mulching",
       ctaCalculator: "Calculator",
       ctaCatalog: "Catalog",

@@ -2,6 +2,7 @@ export interface BlogPost {
   id: number
   slug: string
   image: string
+  youtubeLink?: string
   title: {
     uz: string
     ru: string

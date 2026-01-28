@@ -43,6 +43,7 @@ import { useToast } from "@/components/ui/use-toast"
 const COLOR_OPTIONS = [
   { value: 'white', label: { uz: 'Oq', ru: 'Белый', en: 'White' }, hex: '#FFFFFF' },
   { value: 'black', label: { uz: 'Qora', ru: 'Черный', en: 'Black' }, hex: '#000000' },
+  { value: 'white-black', label: { uz: 'Oq-Qora', ru: 'Белый-Черный', en: 'White-Black' }, hex: '#808080' },
   { value: 'red', label: { uz: 'Qizil', ru: 'Красный', en: 'Red' }, hex: '#EF4444' },
   { value: 'blue', label: { uz: 'Ko\'k', ru: 'Синий', en: 'Blue' }, hex: '#3B82F6' },
   { value: 'green', label: { uz: 'Yashil', ru: 'Зеленый', en: 'Green' }, hex: '#22C55E' },

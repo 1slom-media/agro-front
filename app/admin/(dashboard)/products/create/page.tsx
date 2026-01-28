@@ -37,6 +37,7 @@ export default function CreateProductPage() {
     slug: "",
     categoryId: "",
     price: "",
+    order: 0,
     isActive: true,
     specifications: {
       temperature: "",
@@ -410,6 +411,16 @@ export default function CreateProductPage() {
             </div>
 
             <div className="grid gap-4 md:grid-cols-3">
+              <div className="space-y-2">
+                <Label htmlFor="order">{locale === 'uz' ? 'Tartib' : 'Порядок'}</Label>
+                <Input
+                  id="order"
+                  type="number"
+                  value={formData.order}
+                  onChange={(e) => setFormData({ ...formData, order: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="isActive">{t.products.isActive}</Label>
                 <div className="flex items-center space-x-2 pt-2">

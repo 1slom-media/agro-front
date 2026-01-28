@@ -12,6 +12,34 @@ import { useI18n } from "@/lib/i18n-context"
 import { blogApi } from "@/lib/api-client"
 import { generateBlogPostingSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
 import { ArrowLeft, Calendar } from "lucide-react"
+// YouTube URL conversion utility
+function convertToYouTubeEmbedUrl(url: string): string {
+  if (!url) return '';
+  
+  // Remove any whitespace
+  url = url.trim();
+  
+  // Extract video ID from various YouTube URL formats
+  const patterns = [
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
+    /m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
+    /^([a-zA-Z0-9_-]{11})$/,
+  ];
+  
+  for (const pattern of patterns) {
+    const match = url.match(pattern);
+    if (match && match[1]) {
+      return `https://www.youtube.com/embed/${match[1]}`;
+    }
+  }
+  
+  // If already in embed format, return as is
+  if (url.includes('youtube.com/embed/')) {
+    return url;
+  }
+  
+  return url;
+}
 
 export default function BlogPostPage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = use(params)
@@ -104,8 +132,18 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
               )}
             </header>
 
-            {/* Featured Image */}
-            {(post.featuredImageUrl || post.featuredImageBase64) && (
+            {/* Featured Image or YouTube Video */}
+            {post.youtubeLink ? (
+              <div className="relative aspect-video rounded-xl overflow-hidden mb-8">
+                <iframe
+                  src={convertToYouTubeEmbedUrl(post.youtubeLink)}
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                  title={post.title[locale]}
+                />
+              </div>
+            ) : (post.featuredImageUrl || post.featuredImageBase64) && (
               <div className="relative aspect-video rounded-xl overflow-hidden mb-8">
                 <Image 
                   src={post.featuredImageUrl || post.featuredImageBase64 || "/placeholder.svg"} 
