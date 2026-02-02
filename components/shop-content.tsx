@@ -14,6 +14,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Filter, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+  PaginationEllipsis,
+} from "@/components/ui/pagination"
+import { getImageSource } from "@/lib/utils"
 
 interface ApiProduct {
   id: string
@@ -55,6 +65,8 @@ export function ShopContent() {
   const [filtersDict, setFiltersDict] = useState<any>(null)
   const [colorDict, setColorDict] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 9
 
   useEffect(() => {
     loadData()
@@ -118,6 +130,17 @@ export function ShopContent() {
       return true
     })
   }, [products, categoryFilter, densityFilter, temperatureFilter])
+
+  // Pagination calculations
+  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage)
+  const startIndex = (currentPage - 1) * itemsPerPage
+  const endIndex = startIndex + itemsPerPage
+  const paginatedProducts = filteredProducts.slice(startIndex, endIndex)
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1)
+  }, [categoryFilter, densityFilter, temperatureFilter])
 
   const clearFilters = () => {
     setCategoryFilter("all")
@@ -240,8 +263,16 @@ export function ShopContent() {
                   <p className="text-muted-foreground text-lg">{t.common.loading || "Loading..."}</p>
                 </div>
               ) : filteredProducts.length > 0 ? (
-                <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6">
-                  {filteredProducts.map((product: ApiProduct) => {
+                <>
+                  <div className="mb-4 text-sm text-muted-foreground">
+                    {locale === 'uz' 
+                      ? `${filteredProducts.length} ta mahsulot topildi`
+                      : locale === 'ru'
+                      ? `Найдено ${filteredProducts.length} товаров`
+                      : `${filteredProducts.length} products found`}
+                  </div>
+                  <div className="grid sm:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+                    {paginatedProducts.map((product: ApiProduct) => {
                     const usage = product.specifications?.usage || []
                     // Parse size (e.g., "1,3х200" -> width: 1.3, length: 200)
                     let width = 3.2
@@ -292,7 +323,7 @@ export function ShopContent() {
                       length: length,
                       size: sizeLabel || (width && length ? `${width} × ${length}` : ""),
                       price: product.price || 0,
-                      image: product.images?.image1?.url || product.images?.image1?.base64 || "/placeholder.svg",
+                      image: getImageSource(product.images?.image1),
                       description: product.description || { uz: "", ru: "", en: "" },
                     }
                     return (
@@ -303,7 +334,111 @@ export function ShopContent() {
                     />
                     )
                   })}
-                </div>
+                  </div>
+
+                  {/* Pagination */}
+                  {totalPages > 1 && (
+                    <Pagination className="mt-8">
+                      <PaginationContent>
+                        <PaginationItem>
+                          <PaginationPrevious
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              if (currentPage > 1) {
+                                setCurrentPage(currentPage - 1)
+                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                              }
+                            }}
+                            className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          >
+                            <span className="hidden sm:block">{t.shop.previous}</span>
+                          </PaginationPrevious>
+                        </PaginationItem>
+
+                        {/* Page numbers */}
+                        {(() => {
+                          const pages: (number | 'ellipsis')[] = []
+                          
+                          if (totalPages <= 7) {
+                            // Show all pages if 7 or fewer
+                            for (let i = 1; i <= totalPages; i++) {
+                              pages.push(i)
+                            }
+                          } else {
+                            // Always show first page
+                            pages.push(1)
+                            
+                            if (currentPage <= 3) {
+                              // Near the start
+                              for (let i = 2; i <= 4; i++) {
+                                pages.push(i)
+                              }
+                              pages.push('ellipsis')
+                              pages.push(totalPages)
+                            } else if (currentPage >= totalPages - 2) {
+                              // Near the end
+                              pages.push('ellipsis')
+                              for (let i = totalPages - 3; i <= totalPages; i++) {
+                                pages.push(i)
+                              }
+                            } else {
+                              // In the middle
+                              pages.push('ellipsis')
+                              for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+                                pages.push(i)
+                              }
+                              pages.push('ellipsis')
+                              pages.push(totalPages)
+                            }
+                          }
+                          
+                          return pages.map((page, index) => {
+                            if (page === 'ellipsis') {
+                              return (
+                                <PaginationItem key={`ellipsis-${index}`}>
+                                  <PaginationEllipsis />
+                                </PaginationItem>
+                              )
+                            }
+                            return (
+                              <PaginationItem key={page}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e) => {
+                                    e.preventDefault()
+                                    setCurrentPage(page)
+                                    window.scrollTo({ top: 0, behavior: 'smooth' })
+                                  }}
+                                  isActive={currentPage === page}
+                                  className="cursor-pointer"
+                                >
+                                  {page}
+                                </PaginationLink>
+                              </PaginationItem>
+                            )
+                          })
+                        })()}
+
+                        <PaginationItem>
+                          <PaginationNext
+                            href="#"
+                            onClick={(e) => {
+                              e.preventDefault()
+                              if (currentPage < totalPages) {
+                                setCurrentPage(currentPage + 1)
+                                window.scrollTo({ top: 0, behavior: 'smooth' })
+                              }
+                            }}
+                            className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                          >
+                            <span className="hidden sm:block">{t.shop.next}</span>
+                          </PaginationNext>
+                        </PaginationItem>
+                      </PaginationContent>
+                    </Pagination>
+                  )}
+                </>
               ) : (
                 <div className="text-center py-16">
                   <p className="text-muted-foreground text-lg">{t.calculator.noProduct}</p>

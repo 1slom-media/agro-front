@@ -51,6 +51,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [meters, setMeters] = useState("")
   const [name, setName] = useState("")
   const [phone, setPhone] = useState("")
+  const [phoneError, setPhoneError] = useState<string | null>(null)
   const [orderSubmitted, setOrderSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -67,7 +68,14 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         ])
         setProduct(data)
         setColorDict(dictRes?.color || [])
-      } catch (e) {
+      } catch (e: any) {
+        // If product not found (404), silently redirect to 404 page
+        // Don't log as error since this is expected behavior for invalid slugs
+        if (e?.status === 404 || e?.message?.includes('not found')) {
+          notFound()
+          return
+        }
+        // Only log unexpected errors
         console.error("Failed to load product", e)
         notFound()
       } finally {
@@ -295,7 +303,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
               <h1 className="font-serif text-2xl sm:text-3xl font-bold text-foreground mb-2 line-clamp-2 break-words">{product.name[locale]}</h1>
 
-              <p className="text-muted-foreground mb-4 text-sm">{product.description[locale]}</p>
+              <p className="text-muted-foreground mb-4 text-sm whitespace-pre-line">{product.description[locale]}</p>
 
               <div className="text-2xl font-bold text-primary mb-4">
                 {formatPrice(product.price)} {t.common.sum}
@@ -473,11 +481,15 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
                       id="phone"
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      onChange={handlePhoneChange}
                       placeholder="+998 90 123 45 67"
                       disabled={loading}
                       required
+                      className={phoneError ? "border-destructive" : ""}
                     />
+                    {phoneError && (
+                      <p className="text-sm text-destructive">{phoneError}</p>
+                    )}
                   </div>
                   <Button type="submit" className="w-full" size="lg" disabled={loading}>
                     {loading ? "Submitting..." : t.product.submit}

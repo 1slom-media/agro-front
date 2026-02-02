@@ -19,7 +19,7 @@ async function getAllProducts() {
 
 async function getAllBlogPosts() {
   try {
-    const response = await fetch(`${API_BASE_URL}/blog?limit=1000`, {
+    const response = await fetch(`${API_BASE_URL}/blog?limit=1000&isPublished=true`, {
       next: { revalidate: 3600 }, // Revalidate every hour
     })
     if (!response.ok) return []
@@ -65,6 +65,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: new Date(),
       changeFrequency: "monthly" as const,
       priority: 0.7,
+    },
+    // Note: 404 page is included for completeness, but typically error pages are not in sitemaps
+    // This is added per user request
+    {
+      url: `${baseUrl}/404`,
+      lastModified: new Date(),
+      changeFrequency: "yearly" as const,
+      priority: 0.1,
     },
   ]
 

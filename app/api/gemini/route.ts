@@ -107,6 +107,23 @@ Lekin tanishuv xabari yoki birinchi salomlashishda bu ma'lumotlarni bermasliging
       stack: error?.stack,
       cause: error?.cause,
     });
+
+    // Check if it's a geographic restriction error
+    const isLocationError = error?.message?.includes('location is not supported') || 
+                           error?.message?.includes('User location is not supported');
+
+    if (isLocationError) {
+      // Return a helpful fallback response based on locale
+      const fallbackResponse = locale === 'uz'
+        ? `Kechirasiz, AI yordamchi hozirgi vaqtda mavjud emas. Savollaringiz bo'lsa, biz bilan bog'laning:\n\n📞 Telefon: +998909665800\n📧 Email: info@sunagro.uz\n💬 Telegram: @agrotola\n📷 Instagram: @agrovolokno.uz\n🎵 TikTok: @sunagro.uz\n\nYoki bizning mahsulotlarimiz haqida batafsil ma'lumot olish uchun saytda ko'rib chiqing.`
+        : locale === 'ru'
+        ? `Извините, AI помощник в настоящее время недоступен. Если у вас есть вопросы, свяжитесь с нами:\n\n📞 Телефон: +998909665800\n📧 Email: info@sunagro.uz\n💬 Telegram: @agrotola\n📷 Instagram: @agrovolokno.uz\n🎵 TikTok: @sunagro.uz\n\nИли просмотрите наш сайт для получения подробной информации о наших продуктах.`
+        : `Sorry, the AI assistant is currently unavailable. If you have questions, please contact us:\n\n📞 Phone: +998909665800\n📧 Email: info@sunagro.uz\n💬 Telegram: @agrotola\n📷 Instagram: @agrovolokno.uz\n🎵 TikTok: @sunagro.uz\n\nOr browse our website for detailed information about our products.`;
+
+      return NextResponse.json({ response: fallbackResponse });
+    }
+
+    // For other errors, return generic error message
     return NextResponse.json(
       { 
         error: 'Internal server error',

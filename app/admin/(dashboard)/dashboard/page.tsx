@@ -52,7 +52,7 @@ export default function DashboardPage() {
       const [products, categories, blog, applications, appStats] = await Promise.all([
         productsApi.getAll({ page: 1, limit: 1 }),
         categoriesApi.getAll({ page: 1, limit: 1 }),
-        blogApi.getAll({ page: 1, limit: 1 }),
+        blogApi.getAll({ page: 1, limit: 1, isPublished: 'all' }),
         applicationsApi.getAll({ page: 1, limit: 5 }),
         applicationsApi.getStats(),
       ])

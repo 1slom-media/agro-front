@@ -111,9 +111,10 @@ export default function ProductsPage() {
   }
 
   const getProductImage = (product: any) => {
+    // Prioritize URL over base64 for better performance
     if (product.images?.image1?.url) return product.images.image1.url
-    if (product.images?.image1?.base64) return product.images.image1.base64
     if (product.imageUrl) return product.imageUrl
+    if (product.images?.image1?.base64) return product.images.image1.base64
     if (product.imageBase64) return product.imageBase64
     return "/placeholder.svg"
   }

@@ -28,37 +28,17 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
     load()
   }, [])
 
-  const fallbackUsageTypes = [
-    {
-      id: "greenhouse" as UsageType,
-      title: t.usage.greenhouse.title,
-      description: t.usage.greenhouse.description,
-      icon: Home,
-      image: "/greenhouse-with-white-agrofiber-cover-plants-growi.jpg",
-      href: "/shop?usage=greenhouse",
-      color: "from-emerald-500/20 to-green-500/20",
-    },
-    {
-      id: "open_field" as UsageType,
-      title: t.usage.openField.title,
-      description: t.usage.openField.description,
-      icon: Sun,
-      image: "/open-field-crops-covered-with-white-agricultural-f.jpg",
-      href: "/shop?usage=open_field",
-      color: "from-amber-500/20 to-orange-500/20",
-    },
-    {
-      id: "mulch" as UsageType,
-      title: t.usage.mulch.title,
-      description: t.usage.mulch.description,
-      icon: Sprout,
-      image: "/black-mulch-fabric-in-garden-weed-control-neat-row.jpg",
-      href: "/shop?usage=mulch",
-      color: "from-slate-500/20 to-gray-500/20",
-    },
-  ]
+  interface UsageTypeItem {
+    id: UsageType
+    title: string
+    description: string
+    icon: typeof Home | typeof Sun | typeof Sprout
+    image: string
+    href: string
+    color: string
+  }
 
-  const usageTypes = (categories.length > 0 ? categories.slice(0, 3).map((cat: any, idx: number) => {
+  const usageTypes: UsageTypeItem[] = categories.length > 0 ? categories.slice(0, 3).map((cat: any, idx: number) => {
     const Icon = idx === 0 ? Home : idx === 1 ? Sun : Sprout
     return {
       id: (cat.slug as UsageType) || ("open_field" as UsageType),
@@ -69,7 +49,7 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
       href: `/shop?category=${cat.slug}`,
       color: idx === 0 ? "from-emerald-500/20 to-green-500/20" : idx === 1 ? "from-amber-500/20 to-orange-500/20" : "from-slate-500/20 to-gray-500/20",
     }
-  }) : fallbackUsageTypes)
+  }) : []
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 xl:py-28 bg-gradient-to-b from-secondary/50 to-background relative overflow-hidden">
@@ -87,8 +67,9 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
           {t.hero.description}
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
-          {usageTypes.map((usage: any, index: number) => {
+        {usageTypes.length > 0 ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 lg:gap-10">
+            {usageTypes.map((usage: UsageTypeItem, index: number) => {
             const Icon = usage.icon
             return (
               <div
@@ -143,7 +124,8 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
               </div>
             )
           })}
-        </div>
+          </div>
+        ) : null}
       </div>
     </section>
   )

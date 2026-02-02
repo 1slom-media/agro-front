@@ -70,12 +70,12 @@ export default function HomePage() {
       setLoading(true)
       const [productsRes, blogRes, dictRes] = await Promise.all([
         productsApi.getAll({ page: 1, limit: 8 }),
-        blogApi.getAll({ page: 1, limit: 3 }),
+        blogApi.getAll({ page: 1, limit: 3, isPublished: true }),
         dictionaryApi.getFilters(),
       ])
       
       const activeProductsList = (productsRes.data || []).filter((p: ApiProduct) => p.isActive)
-      const publishedPosts = (blogRes.data || []).filter((p: ApiBlogPost) => p.isPublished)
+      const publishedPosts = blogRes.data || []
       
       setFiltersDict(dictRes || null)
       setColorDict(dictRes?.color || [])

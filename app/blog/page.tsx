@@ -63,9 +63,8 @@ export default function BlogPage() {
   const loadPosts = async () => {
     try {
       setLoading(true)
-      const response = await blogApi.getAll({ page: 1, limit: 100 })
-      const publishedPosts = (response.data || []).filter((p: ApiBlogPost) => p.isPublished)
-      setPosts(publishedPosts.map((p: ApiBlogPost) => ({
+      const response = await blogApi.getAll({ page: 1, limit: 100, isPublished: true })
+      setPosts((response.data || []).map((p: ApiBlogPost) => ({
         id: p.id,
         slug: p.slug,
         image: p.featuredImageBase64 || p.featuredImageUrl || "/placeholder.svg",

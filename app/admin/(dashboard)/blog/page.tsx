@@ -15,6 +15,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -50,6 +51,7 @@ export default function BlogPage() {
   const [total, setTotal] = useState(0)
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [limit, setLimit] = useState(10)
+  const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     const savedLocale = localStorage.getItem("admin_locale") as AdminLocale
@@ -79,7 +81,7 @@ export default function BlogPage() {
 
   const loadPosts = async () => {
     try {
-      const response = await blogApi.getAll({ page, limit })
+      const response = await blogApi.getAll({ page, limit, isPublished: 'all' })
       setPosts(response.data || [])
       setTotal(response.total || 0)
     } catch (error) {
@@ -106,6 +108,49 @@ export default function BlogPage() {
         title: t.common.error,
         description: error.message || t.common.error,
         variant: "destructive",
+      })
+    }
+  }
+
+  const handleTogglePublished = async (postId: string, currentStatus: boolean) => {
+    const newStatus = !currentStatus
+    
+    // Optimistic update
+    setUpdatingIds(prev => new Set(prev).add(postId))
+    setPosts(prevPosts => 
+      prevPosts.map(post => 
+        post.id === postId 
+          ? { ...post, isPublished: newStatus }
+          : post
+      )
+    )
+
+    try {
+      await blogApi.update(postId, { isPublished: newStatus })
+      toast({
+        title: t.common.success,
+        description: newStatus ? t.blog.published : t.blog.unpublished || "Status updated",
+      })
+    } catch (error: any) {
+      console.error("Failed to update blog post status:", error)
+      // Revert optimistic update on error
+      setPosts(prevPosts => 
+        prevPosts.map(post => 
+          post.id === postId 
+            ? { ...post, isPublished: currentStatus }
+            : post
+        )
+      )
+      toast({
+        title: t.common.error,
+        description: error.message || t.common.error,
+        variant: "destructive",
+      })
+    } finally {
+      setUpdatingIds(prev => {
+        const next = new Set(prev)
+        next.delete(postId)
+        return next
       })
     }
   }
@@ -170,11 +215,16 @@ export default function BlogPage() {
                     {post.publishDate ? new Date(post.publishDate).toLocaleDateString() : "-"}
                   </TableCell>
                   <TableCell>
-                    {post.isPublished ? (
-                      <Badge variant="default">{t.blog.published}</Badge>
-                    ) : (
-                      <Badge variant="secondary">{t.blog.draft}</Badge>
-                    )}
+                    <div className="flex items-center gap-3">
+                      <Switch
+                        checked={post.isPublished}
+                        onCheckedChange={() => handleTogglePublished(post.id, post.isPublished)}
+                        disabled={updatingIds.has(post.id)}
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        {post.isPublished ? t.blog.published : t.blog.draft}
+                      </span>
+                    </div>
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">

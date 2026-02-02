@@ -29,11 +29,14 @@ export const metadata: Metadata = {
   }),
   icons: {
     icon: [
-      { url: '/white_logo.svg', type: 'image/svg+xml' },
-      { url: '/icon.svg', type: 'image/svg+xml' },
+      { url: '/icon.svg', type: 'image/svg+xml', sizes: 'any' },
+      { url: '/favicon.svg', type: 'image/svg+xml', sizes: 'any' },
     ],
     apple: [
-      { url: '/apple-icon.png' },
+      { url: '/icon-light.png', sizes: '180x180' },
+    ],
+    shortcut: [
+      { url: '/favicon.svg', type: 'image/svg+xml' },
     ],
   },
 }

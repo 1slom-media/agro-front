@@ -1,9 +1,12 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { Product } from "@/lib/products"
 import { Button } from "@/components/ui/button"
+import { Skeleton } from "@/components/ui/skeleton"
 import { Calculator, ShoppingCart } from "lucide-react"
 
 interface ProductCardProps {
@@ -16,6 +19,12 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onCalculate }: ProductCardProps) {
   const { t, locale } = useI18n()
+  const [imageLoading, setImageLoading] = useState(true)
+
+  // Reset loading state when product image changes
+  useEffect(() => {
+    setImageLoading(true)
+  }, [product.image])
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US").format(price)
@@ -29,10 +38,20 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
       {/* Image */}
       <Link href={`/shop/${product.slug}`} className="cursor-pointer">
         <div className="relative h-36 sm:h-44 md:h-48 lg:h-52 bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
-          <img
+          {imageLoading && (
+            <Skeleton className="absolute inset-0 w-full h-full" />
+          )}
+          <Image
             src={product.image || "/placeholder.svg"}
             alt={product.name}
-            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+            fill
+            className={`object-cover transition-all duration-700 group-hover:scale-110 ${
+              imageLoading ? "opacity-0" : "opacity-100"
+            }`}
+            loading="lazy"
+            sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+            onLoad={() => setImageLoading(false)}
+            onError={() => setImageLoading(false)}
           />
           {/* Gradient overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-background/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />

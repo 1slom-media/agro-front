@@ -81,12 +81,18 @@ export function GeminiChat() {
         }),
       })
 
-      if (!response.ok) {
-        throw new Error("Failed to get response")
-      }
-
       const data = await response.json()
-      setMessages((prev) => [...prev, { role: "assistant", content: data.response }])
+
+      if (!response.ok) {
+        // If there's an error but we have a response field (fallback message), use it
+        if (data.response) {
+          setMessages((prev) => [...prev, { role: "assistant", content: data.response }])
+        } else {
+          throw new Error(data.error || "Failed to get response")
+        }
+      } else {
+        setMessages((prev) => [...prev, { role: "assistant", content: data.response }])
+      }
     } catch (error) {
       console.error("Error calling Gemini API:", error)
       setMessages((prev) => [

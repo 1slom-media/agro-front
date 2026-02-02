@@ -73,6 +73,8 @@ export const translations = {
       calculate: "Hisoblash",
       buy: "Sotib olish",
       perRoll: "rulon uchun",
+      previous: "Oldingi",
+      next: "Keyingi",
     },
     // Product
     product: {
@@ -196,6 +198,8 @@ export const translations = {
       calculate: "Рассчитать",
       buy: "Купить",
       perRoll: "за рулон",
+      previous: "Предыдущая",
+      next: "Следующая",
     },
     // Product
     product: {
@@ -319,6 +323,8 @@ export const translations = {
       calculate: "Calculate",
       buy: "Buy",
       perRoll: "per roll",
+      previous: "Previous",
+      next: "Next",
     },
     // Product
     product: {

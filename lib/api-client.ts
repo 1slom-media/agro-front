@@ -160,8 +160,13 @@ export const productsApi = {
 
 // Blog API
 export const blogApi = {
-  getAll: (params?: { page?: number; limit?: number }) => {
-    const query = new URLSearchParams(params as any).toString();
+  getAll: (params?: { page?: number; limit?: number; isPublished?: string | boolean }) => {
+    const queryParams: any = { ...params };
+    // Convert boolean to string if needed
+    if (typeof queryParams.isPublished === 'boolean') {
+      queryParams.isPublished = queryParams.isPublished ? 'true' : 'false';
+    }
+    const query = new URLSearchParams(queryParams as any).toString();
     return apiRequest<any>(`/blog?${query}`);
   },
   
