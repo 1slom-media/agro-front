@@ -2,6 +2,13 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+// Lightweight in-memory cache for public GET requests (dedupe + TTL).
+// Reduces duplicate API calls across components on the same page render.
+type CacheEntry = { expiresAt: number; promise: Promise<any> }
+const publicGetCache = new Map<string, CacheEntry>()
+// 5 minutes in production, 30 seconds in dev (hot reload often changes data)
+const PUBLIC_GET_TTL_MS = process.env.NODE_ENV === 'production' ? 5 * 60_000 : 30_000
+
 // Token management
 export const tokenManager = {
   getToken: (): string | null => {
@@ -38,6 +45,7 @@ async function apiRequest<T>(
   options: RequestInit = {},
 ): Promise<T> {
   const token = tokenManager.getToken();
+  const method = (options.method || 'GET').toUpperCase()
 
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -47,47 +55,68 @@ async function apiRequest<T>(
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
-  
-  try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new ApiError(
-        response.status,
-        errorData.message || 'An error occurred',
-        errorData.errors,
-      );
-    }
+  const doFetch = async (): Promise<T> => {
+    try {
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+        ...options,
+        headers,
+      });
 
-    // Handle empty responses (e.g., DELETE operations)
-    const contentType = response.headers.get('content-type');
-    if (!contentType || !contentType.includes('application/json')) {
-      return {} as T;
-    }
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new ApiError(
+          response.status,
+          errorData.message || 'An error occurred',
+          errorData.errors,
+        );
+      }
 
-    const text = await response.text();
-    if (!text || text.trim() === '') {
-      return {} as T;
-    }
+      // Handle empty responses (e.g., DELETE operations)
+      const contentType = response.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        return {} as T;
+      }
 
-    return JSON.parse(text);
-  } catch (error) {
-    // Handle network errors (backend not running, CORS, etc.)
-    if (error instanceof TypeError && error.message === 'Failed to fetch') {
-      console.error(`API request failed: ${API_BASE_URL}${endpoint}`);
-      console.error('Make sure the backend server is running on', API_BASE_URL);
-      throw new ApiError(
-        0,
-        `Cannot connect to backend server. Please ensure the backend is running at ${API_BASE_URL}`,
-      );
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        return {} as T;
+      }
+
+      return JSON.parse(text);
+    } catch (error) {
+      // Handle network errors (backend not running, CORS, etc.)
+      if (error instanceof TypeError && error.message === 'Failed to fetch') {
+        console.error(`API request failed: ${API_BASE_URL}${endpoint}`);
+        console.error('Make sure the backend server is running on', API_BASE_URL);
+        throw new ApiError(
+          0,
+          `Cannot connect to backend server. Please ensure the backend is running at ${API_BASE_URL}`,
+        );
+      }
+      // Re-throw other errors (ApiError, etc.)
+      throw error;
     }
-    // Re-throw other errors (ApiError, etc.)
-    throw error;
   }
+
+  // Cache only public GET requests (no admin token) to avoid stale admin data.
+  if (!token && method === 'GET') {
+    // Include full URL + body in key to avoid collisions between different queries
+    const cacheKey = `${API_BASE_URL}${endpoint}|${JSON.stringify(options.body ?? null)}`
+    const now = Date.now()
+    const cached = publicGetCache.get(cacheKey)
+    if (cached && cached.expiresAt > now) return cached.promise as Promise<T>
+
+    const promise = doFetch()
+    publicGetCache.set(cacheKey, { expiresAt: now + PUBLIC_GET_TTL_MS, promise })
+    promise.catch(() => {
+      const current = publicGetCache.get(cacheKey)
+      if (current?.promise === promise) publicGetCache.delete(cacheKey)
+    })
+    return promise
+  }
+  
+  return doFetch()
 }
 
 // Auth API
@@ -135,6 +164,12 @@ export const categoriesApi = {
 // Products API
 export const productsApi = {
   getAll: (params?: { page?: number; limit?: number; isFeatured?: boolean; categoryId?: string }) => {
+    if (params?.categoryId) {
+      const { categoryId, ...rest } = params;
+      const query = new URLSearchParams(rest as any).toString();
+      const suffix = query ? `?${query}` : "";
+      return apiRequest<any>(`/products/category/${categoryId}${suffix}`);
+    }
     const query = new URLSearchParams(params as any).toString();
     return apiRequest<any>(`/products?${query}`);
   },

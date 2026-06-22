@@ -4,10 +4,11 @@ import { useState, useEffect } from "react"
 import Image from "next/image"
 import Link from "next/link"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { useI18n } from "@/lib/i18n-context"
 import { blogApi } from "@/lib/api-client"
+import { normalizeImageUrl } from "@/lib/utils"
 import { ArrowRight, Calendar } from "lucide-react"
 // YouTube URL conversion utility
 function convertToYouTubeEmbedUrl(url: string): string {
@@ -67,7 +68,8 @@ export default function BlogPage() {
       setPosts((response.data || []).map((p: ApiBlogPost) => ({
         id: p.id,
         slug: p.slug,
-        image: p.featuredImageBase64 || p.featuredImageUrl || "/placeholder.svg",
+        // URL preferred; fall back to base64 so thumbnails always show
+        image: normalizeImageUrl(p.featuredImageUrl) || p.featuredImageBase64 || "/placeholder.svg",
         youtubeLink: p.youtubeLink,
         title: p.title,
         excerpt: p.excerpt || { uz: "", ru: "", en: "" },
@@ -154,7 +156,7 @@ export default function BlogPage() {
         </div>
       </main>
 
-      <Footer onOpenCalculator={() => setCalculatorOpen(true)} />
+      <FooterLazy onOpenCalculator={() => setCalculatorOpen(true)} />
 
       <CalculatorModal open={calculatorOpen} onOpenChange={setCalculatorOpen} />
     </div>

@@ -2,39 +2,50 @@
 
 import { useEffect, useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import { Leaf, Calculator, Phone, Mail, MapPin, Send, Instagram, Facebook } from "lucide-react"
-import { categoriesApi, productsApi } from "@/lib/api-client"
+import { productsApi } from "@/lib/api-client"
 
 interface FooterProps {
-  onOpenCalculator: () => void
+  onOpenCalculator?: () => void
+}
+
+type FooterProduct = {
+  id: string
+  slug: string
+  price?: number
+  isActive?: boolean
+  name: { uz: string; ru: string; en: string } | string
 }
 
 export function Footer({ onOpenCalculator }: FooterProps) {
   const { t, locale } = useI18n()
-
-  const [popularProducts, setPopularProducts] = useState<any[]>([])
-  const [quickCategories, setQuickCategories] = useState<any[]>([])
+  const [popularProducts, setPopularProducts] = useState<FooterProduct[]>([])
 
   useEffect(() => {
+    let mounted = true
     const load = async () => {
       try {
-        const [productsRes, categoriesRes] = await Promise.all([
-          productsApi.getAll({ page: 1, limit: 5 }),
-          categoriesApi.getAll({ page: 1, limit: 10 }),
-        ])
-
-        const prods = (productsRes.data || []).filter((p: any) => p.isActive)
-        setPopularProducts(prods.slice(0, 5))
-
-        const cats = (categoriesRes.data || []).filter((c: any) => c.isActive)
-        setQuickCategories(cats.slice(0, 5))
-      } catch (e) {
-        console.error("Failed to load footer data:", e)
+        // Lightweight: only 5 items. Cached in api-client for public GET.
+        const res = await productsApi.getAll({ page: 1, limit: 5 })
+        const items = (res?.data || [])
+          .filter((p: FooterProduct) => p?.isActive !== false)
+          .slice(0, 5)
+        if (mounted) setPopularProducts(items)
+      } catch {
+        // Silent: footer should never break the page
+        if (mounted) setPopularProducts([])
       }
     }
     load()
+    return () => {
+      mounted = false
+    }
   }, [])
+
+  const formatPrice = (price: number) =>
+    new Intl.NumberFormat(locale === "ru" ? "ru-RU" : locale === "uz" ? "uz-UZ" : "en-US").format(price)
 
   return (
     <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-white relative overflow-hidden">
@@ -49,14 +60,13 @@ export function Footer({ onOpenCalculator }: FooterProps) {
           {/* Brand */}
           <div>
             <Link href="/" className="flex items-center gap-2 mb-4 group cursor-pointer">
-              <img 
-                src="/black_logo.svg" 
-                alt="SunAgro" 
+              <Image
+                src="/black_logo.svg"
+                alt="SunAgro"
+                width={180}
+                height={64}
+                loading="lazy"
                 className="h-16 w-auto object-contain transition-all duration-300 group-hover:scale-105"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
               />
             </Link>
             <p className="text-white/70 text-sm leading-relaxed mb-4">
@@ -106,20 +116,40 @@ export function Footer({ onOpenCalculator }: FooterProps) {
               {t.footer.quickLinks}
             </h3>
             <ul className="space-y-3">
-              {quickCategories.map((cat: any) => (
-                <li key={cat.id}>
+              <li>
                 <Link
-                    href={`/shop?category=${cat.slug}`}
-                    className="text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group cursor-pointer"
+                  href="/shop?category=yopuvchi-material"
+                  className="text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group cursor-pointer"
                 >
                   <span className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white transition-colors" />
-                    {cat.name?.[locale] || cat.name?.ru || cat.slug}
+                  {locale === "uz" && "Yopuvchi material"}
+                  {locale === "ru" && "Укрывной материал"}
+                  {locale === "en" && "Cover material"}
                 </Link>
               </li>
-              ))}
+              <li>
+                <Link
+                  href="/shop?category=mulch"
+                  className="text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group cursor-pointer"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white transition-colors" />
+                  {locale === "uz" && "Mulcha"}
+                  {locale === "ru" && "Мульча"}
+                  {locale === "en" && "Mulch"}
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/shop"
+                  className="text-white/70 hover:text-white hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group cursor-pointer"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-white/40 group-hover:bg-white transition-colors" />
+                  {t.nav?.shop || (locale === "ru" ? "Каталог" : locale === "uz" ? "Katalog" : "Shop")}
+                </Link>
+              </li>
               <li>
                 <button
-                  onClick={onOpenCalculator}
+                  onClick={() => onOpenCalculator?.()}
                   className="text-background/70 hover:text-background hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group cursor-pointer"
                 >
                   <Calculator className="h-4 w-4 group-hover:rotate-12 transition-transform" />
@@ -135,24 +165,38 @@ export function Footer({ onOpenCalculator }: FooterProps) {
               <div className="w-1 h-6 bg-white/50 rounded-full" />
               {t.footer.popularProducts}
             </h3>
-            <ul className="space-y-3">
-              {popularProducts.map((product) => (
-                <li key={product.id}>
-                  <Link
-                    href={`/shop/${product.slug}`}
-                    className="text-background/70 hover:text-background hover:translate-x-1 transition-all duration-300 text-sm flex items-center gap-2 group line-clamp-1 cursor-pointer"
-                  >
-                    <span className="w-1.5 h-1.5 rounded-full bg-background/40 group-hover:bg-background transition-colors flex-shrink-0" />
-                    <span className="line-clamp-1">
-                      {(product.name?.[locale] || product.name?.ru || product.slug) +
-                        (product.specifications?.width && product.specifications?.length
-                          ? ` • ${product.specifications.width}×${product.specifications.length}m`
-                          : "")}
-                    </span>
+            {popularProducts.length > 0 ? (
+              <ul className="space-y-3">
+                {popularProducts.map((p) => {
+                  const name =
+                    typeof p.name === "string" ? p.name : p.name?.[locale] || (p.name as any)?.ru || (p.name as any)?.uz || (p.name as any)?.en
+                  return (
+                    <li key={p.id}>
+                      <Link
+                        href={`/shop/${p.slug}`}
+                        className="text-white/70 hover:text-white transition-colors text-sm flex flex-col cursor-pointer"
+                      >
+                        <span className="line-clamp-1">{name}</span>
+                        {typeof p.price === "number" && p.price > 0 && (
+                          <span className="text-white/50 text-xs">{formatPrice(p.price)} {t.common.sum}</span>
+                        )}
+                      </Link>
+                    </li>
+                  )
+                })}
+                <li className="pt-1">
+                  <Link href="/shop" className="text-white/70 hover:text-white underline text-sm cursor-pointer">
+                    {locale === "uz" ? "Barchasini ko‘rish" : locale === "ru" ? "Смотреть все" : "View all"}
                   </Link>
                 </li>
-              ))}
-            </ul>
+              </ul>
+            ) : (
+              <p className="text-white/70 text-sm leading-relaxed">
+                {locale === "uz" && "Mashhur mahsulotlarni katalogdan ko‘rishingiz mumkin."}
+                {locale === "ru" && "Популярные товары смотрите в каталоге."}
+                {locale === "en" && "See popular products in the catalog."}
+              </p>
+            )}
           </div>
 
           {/* Contacts */}

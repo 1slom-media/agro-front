@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { Button } from "@/components/ui/button"
 import { Home, ArrowLeft, Search } from "lucide-react"
 import { useI18n } from "@/lib/i18n-context"
@@ -139,7 +139,7 @@ export default function NotFound() {
         </div>
       </main>
 
-      <Footer />
+      <FooterLazy />
     </div>
   )
 }

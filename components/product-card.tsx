@@ -13,6 +13,8 @@ interface ProductCardProps {
   product: Product & {
     colorLabel?: string
     size?: string
+    sellType?: string
+    sellTypeLabel?: string
   }
   onCalculate?: () => void
 }
@@ -26,9 +28,16 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
     setImageLoading(true)
   }, [product.image])
 
+  // base64 data URIs cannot be optimized by next/image – skip optimization
+  const isBase64Image = (product.image || "").startsWith("data:")
+
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US").format(price)
   }
+
+  const priceUnit =
+    product.sellTypeLabel ||
+    (product.sellType === "za_paket" ? t.shop.perPackage : t.shop.perRoll)
 
   return (
     <div className="group bg-card rounded-2xl overflow-hidden shadow-md border border-border hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 relative">
@@ -37,7 +46,7 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
 
       {/* Image */}
       <Link href={`/shop/${product.slug}`} className="cursor-pointer">
-        <div className="relative h-36 sm:h-44 md:h-48 lg:h-52 bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
+        <div className="relative aspect-[4/3] w-full bg-gradient-to-br from-secondary to-secondary/50 overflow-hidden">
           {imageLoading && (
             <Skeleton className="absolute inset-0 w-full h-full" />
           )}
@@ -45,6 +54,7 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
             src={product.image || "/placeholder.svg"}
             alt={product.name}
             fill
+            unoptimized={isBase64Image}
             className={`object-cover transition-all duration-700 group-hover:scale-110 ${
               imageLoading ? "opacity-0" : "opacity-100"
             }`}
@@ -122,7 +132,7 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
             </p>
             <span className="text-xs sm:text-sm font-medium text-muted-foreground">{t.common.sum}</span>
           </div>
-          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{t.shop.perRoll}</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground mt-1">{priceUnit}</p>
         </div>
 
         {/* Action buttons */}
@@ -132,6 +142,7 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
               variant="outline"
               size="sm"
               onClick={onCalculate}
+              aria-label={t.shop.calculate}
               className="flex-1 bg-secondary/50 hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all duration-300 text-xs sm:text-sm h-9 sm:h-10 font-medium group-hover:shadow-md cursor-pointer"
             >
               <Calculator className="h-3.5 w-3.5 sm:h-4 sm:w-4 mr-1.5" />

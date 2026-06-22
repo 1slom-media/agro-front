@@ -5,11 +5,12 @@ import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { StructuredData } from "@/components/structured-data"
 import { useI18n } from "@/lib/i18n-context"
 import { blogApi } from "@/lib/api-client"
+import { normalizeImageUrl } from "@/lib/utils"
 import { generateBlogPostingSchema, generateBreadcrumbSchema } from "@/lib/structured-data"
 import { ArrowLeft, Calendar } from "lucide-react"
 // YouTube URL conversion utility
@@ -81,7 +82,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
   const blogSchema = generateBlogPostingSchema(
     post.title[locale],
     post.excerpt?.[locale] || "",
-    post.featuredImageUrl || post.featuredImageBase64 || "/placeholder.svg",
+    normalizeImageUrl(post.featuredImageUrl) || post.featuredImageBase64 || "/placeholder.svg",
     post.publishedAt ? new Date(post.publishedAt).toISOString() : new Date().toISOString(),
     post.slug,
   )
@@ -146,9 +147,11 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
             ) : (post.featuredImageUrl || post.featuredImageBase64) && (
               <div className="relative aspect-video rounded-xl overflow-hidden mb-8">
                 <Image 
-                  src={post.featuredImageUrl || post.featuredImageBase64 || "/placeholder.svg"} 
+                  src={normalizeImageUrl(post.featuredImageUrl) || post.featuredImageBase64 || "/placeholder.svg"} 
                   alt={post.title[locale]} 
-                  fill 
+                  fill
+                  priority
+                  sizes="(max-width: 768px) 100vw, 768px"
                   className="object-cover" 
                 />
               </div>
@@ -164,7 +167,7 @@ export default function BlogPostPage({ params }: { params: Promise<{ slug: strin
         </article>
       </main>
 
-      <Footer onOpenCalculator={() => setCalculatorOpen(true)} />
+      <FooterLazy onOpenCalculator={() => setCalculatorOpen(true)} />
 
       <CalculatorModal open={calculatorOpen} onOpenChange={setCalculatorOpen} />
     </div>

@@ -71,7 +71,7 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
   
   // Step management
   const [currentStep, setCurrentStep] = useState<number>(1)
-  const totalSteps = isProductBased ? 2 : 5 // Product-based: 2 steps, General: 5 steps
+  const totalSteps = isProductBased ? 2 : 4 // Product-based: 2 steps, General: 4 steps
 
   // General calculation states
   const [materialType, setMaterialType] = useState<MaterialType | "">("")
@@ -103,12 +103,19 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
     }
   }, [open, isProductBased])
 
-  // Load products when category and temperature are selected (general calculation)
+  // Load products when category and temperature are selected (cover material)
   useEffect(() => {
     if (open && !isProductBased && categorySlug && temperature && materialType === "cover") {
       loadProductsByCategoryAndTemperature()
     }
   }, [open, categorySlug, temperature, materialType, isProductBased])
+
+  // Load products when mulch category is selected on step 3
+  useEffect(() => {
+    if (open && !isProductBased && categorySlug && materialType === "mulch" && currentStep === 3) {
+      loadProductsByCategory()
+    }
+  }, [open, categorySlug, materialType, currentStep, isProductBased])
 
   // Reset when modal opens/closes
   useEffect(() => {
@@ -142,6 +149,34 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
     } catch (error) {
       console.error("Failed to load categories:", error)
       setCategories([])
+    }
+  }
+
+  const loadProductsByCategory = async () => {
+    if (!categorySlug) return
+
+    try {
+      setLoadingProducts(true)
+      const category = categories.find((c: any) => c.slug === categorySlug)
+      if (!category) {
+        setAvailableProducts([])
+        return
+      }
+
+      const res = await productsApi.getAll({ page: 1, limit: 100, categoryId: category.id })
+      const filtered = (res.data || []).filter((p: ApiProduct) => p.isActive)
+      setAvailableProducts(filtered)
+
+      if (filtered.length === 1) {
+        setSelectedProduct(filtered[0])
+      } else {
+        setSelectedProduct(null)
+      }
+    } catch (error) {
+      console.error("Failed to load products:", error)
+      setAvailableProducts([])
+    } finally {
+      setLoadingProducts(false)
     }
   }
 
@@ -242,23 +277,16 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
           }
         }
         
-        // If cover material, go to temperature step
-        // If mulch, calculate result
-        if (materialType === "cover") {
-          setCurrentStep(4)
-        } else {
-          calculateGeneralResult()
-        }
-      } else if (currentStep === 4) {
-        // Temperature input (only for cover material)
-        const temp = Number.parseFloat(temperature)
-        if (!temperature || isNaN(temp)) {
-          alert(locale === "uz" ? "Temperaturani kiriting" : locale === "ru" ? "Введите температуру" : "Enter temperature")
-          return
-        }
         if (!selectedProduct) {
           alert(locale === "uz" ? "Mahsulotni tanlang" : locale === "ru" ? "Выберите продукт" : "Select product")
           return
+        }
+        if (materialType === "cover") {
+          const temp = Number.parseFloat(temperature)
+          if (!temperature || isNaN(temp)) {
+            alert(locale === "uz" ? "Temperaturani kiriting" : locale === "ru" ? "Введите температуру" : "Enter temperature")
+            return
+          }
         }
         calculateGeneralResult()
       }
@@ -284,6 +312,31 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
     return { width: 0, length: 0 }
   }
 
+  const calculateRollCountAndPrice = (
+    product: ApiProduct,
+    area: number
+  ): { rollCount: number; totalPrice: number } => {
+    let productWidth = 0
+    let productLength = 0
+
+    if (product.specifications?.size) {
+      const parsed = parseProductSize(product.specifications.size)
+      productWidth = parsed.width
+      productLength = parsed.length
+    } else if (product.specifications?.width && product.specifications?.length) {
+      productWidth = Number.parseFloat(product.specifications.width.replace(",", "."))
+      productLength = Number.parseFloat(product.specifications.length.replace(",", "."))
+    }
+
+    if (productWidth <= 0 || productLength <= 0) {
+      return { rollCount: 0, totalPrice: 0 }
+    }
+
+    const rollArea = productWidth * productLength
+    const rollCount = Math.ceil(area / rollArea)
+    return { rollCount, totalPrice: rollCount * product.price }
+  }
+
   const calculateProductBasedResult = () => {
     if (!initialProduct) {
       alert(locale === "uz" ? "Mahsulot topilmadi" : locale === "ru" ? "Продукт не найден" : "Product not found")
@@ -294,28 +347,21 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
     const areaWidth = Number.parseFloat(width)
     const totalArea = areaLength * areaWidth
 
-    // Parse product size
-    let productWidth = 0
-    let productLength = 0
+    const { rollCount, totalPrice } = calculateRollCountAndPrice(
+      {
+        id: initialProduct.id,
+        name: { uz: "", ru: "", en: "" },
+        slug: "",
+        price: initialProduct.price,
+        specifications: initialProduct.specifications,
+      },
+      totalArea
+    )
 
-    if (initialProduct.specifications?.size) {
-      const parsed = parseProductSize(initialProduct.specifications.size)
-      productWidth = parsed.width
-      productLength = parsed.length
-    } else if (initialProduct.specifications?.width && initialProduct.specifications?.length) {
-      productWidth = Number.parseFloat(initialProduct.specifications.width.replace(',', '.'))
-      productLength = Number.parseFloat(initialProduct.specifications.length.replace(',', '.'))
-    }
-
-    if (productWidth <= 0 || productLength <= 0) {
+    if (rollCount <= 0) {
       alert(locale === "uz" ? "Mahsulot o'lchamlari noto'g'ri" : locale === "ru" ? "Неверные размеры продукта" : "Invalid product dimensions")
       return
     }
-
-    // Calculate roll count: totalArea / (productWidth * productLength)
-    const rollArea = productWidth * productLength
-    const rollCount = Math.ceil(totalArea / rollArea)
-    const totalPrice = rollCount * initialProduct.price
 
     const resultData: CalculationResult = {
       totalArea,
@@ -357,36 +403,23 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
       calculationMethod: calculationMethod as CalculationMethod,
     }
 
-    if (materialType === "cover" && selectedProduct) {
+    if (materialType === "cover" && temperature) {
       const temp = Number.parseFloat(temperature)
       const density = getDensityByTemperature(temp)
       const densityLabel = getDensityLabelByTemperature(temp)
-      
+
       resultData.recommendedDensity = density
       resultData.densityLabel = densityLabel
       resultData.temperature = temp
+    }
 
-      // Calculate roll count and price if product is selected
-      if (selectedProduct) {
-        let productWidth = 0
-        let productLength = 0
+    if (selectedProduct) {
+      const { rollCount, totalPrice } = calculateRollCountAndPrice(selectedProduct, calculatedArea)
+      resultData.rollCount = rollCount
+      resultData.totalPrice = totalPrice
+    }
 
-        if (selectedProduct.specifications?.size) {
-          const parsed = parseProductSize(selectedProduct.specifications.size)
-          productWidth = parsed.width
-          productLength = parsed.length
-        } else if (selectedProduct.specifications?.width && selectedProduct.specifications?.length) {
-          productWidth = Number.parseFloat(selectedProduct.specifications.width.replace(',', '.'))
-          productLength = Number.parseFloat(selectedProduct.specifications.length.replace(',', '.'))
-        }
-
-        if (productWidth > 0 && productLength > 0) {
-          const rollArea = productWidth * productLength
-          resultData.rollCount = Math.ceil(calculatedArea / rollArea)
-          resultData.totalPrice = resultData.rollCount * selectedProduct.price
-        }
-      }
-    } else if (materialType === "mulch" && calculationMethod === "total_area") {
+    if (materialType === "mulch" && calculationMethod === "total_area") {
       message = locale === "uz" 
         ? "Umumiy maydon bo'yicha hisoblash yaxlit qoplash uchun mos. Yo'l bor bo'lsa, g'ildiraklar bo'yicha hisoblash tavsiya etiladi."
         : locale === "ru"
@@ -594,11 +627,15 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
                 </div>
               )}
 
-              {/* Step 3: Input Data */}
+              {/* Step 3: Input Data + Product selection */}
               {currentStep === 3 && (
                 <div className="space-y-4">
                   <Label className="text-base font-semibold">
-                    {locale === "uz" ? "3. Ma'lumotlarni kiriting" : locale === "ru" ? "3. Введите данные" : "3. Enter Data"}
+                    {locale === "uz"
+                      ? "3. Ma'lumotlarni kiriting va mahsulotni tanlang"
+                      : locale === "ru"
+                      ? "3. Введите данные и выберите продукт"
+                      : "3. Enter Data and Select Product"}
                   </Label>
                   
                   {calculationMethod === "total_area" ? (
@@ -693,77 +730,92 @@ export function CalculatorModal({ open, onOpenChange, initialCategory, initialPr
                       </p>
                     </div>
                   )}
-                </div>
-              )}
 
-              {/* Step 4: Temperature (only for cover material) */}
-              {currentStep === 4 && materialType === "cover" && (
-                <div className="space-y-4">
-                  <Label className="text-base font-semibold">
-                    {locale === "uz" ? "4. Temperaturani kiriting" : locale === "ru" ? "4. Введите температуру" : "4. Enter Temperature"}
-                  </Label>
-                  <div className="space-y-2">
-                    <Input
-                      type="number"
-                      value={temperature}
-                      onChange={(e) => setTemperature(e.target.value)}
-                      placeholder="-5"
-                      className="w-full"
-                    />
-                    <p className="text-xs text-muted-foreground">
-                      {locale === "uz"
-                        ? "Minimal haroratni kiriting (masalan: -5°C)"
-                        : locale === "ru"
-                        ? "Введите минимальную температуру (например: -5°C)"
-                        : "Enter minimum temperature (e.g.: -5°C)"}
-                    </p>
-                  </div>
-
-                  {/* Product selection */}
-                  {temperature && (
+                  {materialType === "cover" && (
                     <div className="space-y-2">
                       <Label>
-                        {locale === "uz" ? "Mahsulotni tanlang" : locale === "ru" ? "Выберите продукт" : "Select Product"}
+                        {locale === "uz" ? "Temperatura (°C)" : locale === "ru" ? "Температура (°C)" : "Temperature (°C)"}
                       </Label>
-                      {loadingProducts ? (
-                        <div className="flex items-center justify-center py-4">
-                          <Loader2 className="h-5 w-5 animate-spin text-primary" />
-                        </div>
-                      ) : availableProducts.length === 0 ? (
-                        <p className="text-sm text-muted-foreground py-4 text-center">
-                          {locale === "uz" 
-                            ? "Bu kategoriya va temperatura uchun mahsulot topilmadi"
-                            : locale === "ru"
-                            ? "Продукты для этой категории и температуры не найдены"
-                            : "No products found for this category and temperature"}
-                        </p>
-                      ) : (
-                        <Select 
-                          value={selectedProduct?.id || ""} 
-                          onValueChange={(value) => {
-                            const product = availableProducts.find(p => p.id === value)
-                            setSelectedProduct(product || null)
-                          }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder={
-                              locale === "uz" ? "Mahsulotni tanlang" : locale === "ru" ? "Выберите продукт" : "Select product"
-                            } />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {availableProducts.map((product) => {
-                              const productName = product.name?.[locale] || product.name?.ru || ""
-                              return (
-                                <SelectItem key={product.id} value={product.id}>
-                                  {productName} - {formatPrice(product.price)} {locale === "uz" ? "so'm" : locale === "ru" ? "сум" : "sum"}
-                                </SelectItem>
-                              )
-                            })}
-                          </SelectContent>
-                        </Select>
-                      )}
+                      <Input
+                        type="number"
+                        value={temperature}
+                        onChange={(e) => {
+                          setTemperature(e.target.value)
+                          setSelectedProduct(null)
+                        }}
+                        placeholder="-5"
+                        className="w-full"
+                      />
+                      <p className="text-xs text-muted-foreground">
+                        {locale === "uz"
+                          ? "Minimal haroratni kiriting (masalan: -5°C)"
+                          : locale === "ru"
+                          ? "Введите минимальную температуру (например: -5°C)"
+                          : "Enter minimum temperature (e.g.: -5°C)"}
+                      </p>
                     </div>
                   )}
+
+                  <div className="space-y-2">
+                    <Label>
+                      {locale === "uz" ? "Mahsulot" : locale === "ru" ? "Продукт" : "Product"}
+                    </Label>
+                    {loadingProducts ? (
+                      <div className="flex items-center justify-center py-4">
+                        <Loader2 className="h-5 w-5 animate-spin text-primary" />
+                      </div>
+                    ) : materialType === "cover" && !temperature ? (
+                      <p className="text-sm text-muted-foreground py-2">
+                        {locale === "uz"
+                          ? "Avval temperaturani kiriting"
+                          : locale === "ru"
+                          ? "Сначала введите температуру"
+                          : "Enter temperature first"}
+                      </p>
+                    ) : availableProducts.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-2">
+                        {locale === "uz"
+                          ? "Bu kategoriya uchun mahsulot topilmadi"
+                          : locale === "ru"
+                          ? "Продукты для этой категории не найдены"
+                          : "No products found for this category"}
+                      </p>
+                    ) : (
+                      <Select
+                        value={selectedProduct?.id || ""}
+                        onValueChange={(value) => {
+                          const product = availableProducts.find((p) => p.id === value)
+                          setSelectedProduct(product || null)
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue
+                            placeholder={
+                              locale === "uz"
+                                ? "Mahsulotni tanlang"
+                                : locale === "ru"
+                                ? "Выберите продукт"
+                                : "Select product"
+                            }
+                          />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {availableProducts.map((product) => {
+                            const productName = product.name?.[locale] || product.name?.ru || ""
+                            const size = product.specifications?.size
+                            const label = size
+                              ? `${productName} (${size}) — ${formatPrice(product.price)} ${locale === "uz" ? "so'm" : locale === "ru" ? "сум" : "sum"}`
+                              : `${productName} — ${formatPrice(product.price)} ${locale === "uz" ? "so'm" : locale === "ru" ? "сум" : "sum"}`
+                            return (
+                              <SelectItem key={product.id} value={product.id}>
+                                {label}
+                              </SelectItem>
+                            )
+                          })}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
                 </div>
               )}
             </>

@@ -3,7 +3,7 @@
 import { useState } from "react"
 import Image from "next/image"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { useI18n } from "@/lib/i18n-context"
 import { Leaf, Shield, Truck, Award } from "lucide-react"
@@ -180,7 +180,7 @@ export default function AboutPage() {
         </section>
       </main>
 
-      <Footer onOpenCalculator={() => setCalculatorOpen(true)} />
+      <FooterLazy onOpenCalculator={() => setCalculatorOpen(true)} />
 
       <CalculatorModal open={calculatorOpen} onOpenChange={setCalculatorOpen} />
     </div>

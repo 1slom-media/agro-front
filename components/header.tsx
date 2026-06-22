@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { Locale } from "@/lib/i18n"
 import { Button } from "@/components/ui/button"
@@ -68,14 +69,13 @@ export function Header({ onOpenCalculator }: HeaderProps) {
                 "group-hover:scale-105",
               )}
             >
-              <img 
-                src="/white_logo.svg" 
-                alt="SunAgro" 
+              <Image
+                src="/white_logo.svg"
+                alt="SunAgro"
+                width={160}
+                height={64}
+                priority
                 className="h-14 w-auto lg:h-16 object-contain transition-all duration-300"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  target.style.display = 'none';
-                }}
               />
             </div>
           </Link>

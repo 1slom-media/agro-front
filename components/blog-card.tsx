@@ -1,37 +1,11 @@
 "use client"
 
 import Link from "next/link"
+import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { BlogPost } from "@/lib/blog"
+import { convertToYouTubeEmbedUrl } from "@/lib/youtube"
 import { ArrowRight, Calendar } from "lucide-react"
-// YouTube URL conversion utility
-function convertToYouTubeEmbedUrl(url: string): string {
-  if (!url) return '';
-  
-  // Remove any whitespace
-  url = url.trim();
-  
-  // Extract video ID from various YouTube URL formats
-  const patterns = [
-    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/,
-    /m\.youtube\.com\/watch\?v=([a-zA-Z0-9_-]{11})/,
-    /^([a-zA-Z0-9_-]{11})$/,
-  ];
-  
-  for (const pattern of patterns) {
-    const match = url.match(pattern);
-    if (match && match[1]) {
-      return `https://www.youtube.com/embed/${match[1]}`;
-    }
-  }
-  
-  // If already in embed format, return as is
-  if (url.includes('youtube.com/embed/')) {
-    return url;
-  }
-  
-  return url;
-}
 
 interface BlogCardProps {
   post: BlogPost
@@ -39,6 +13,7 @@ interface BlogCardProps {
 
 export function BlogCard({ post }: BlogCardProps) {
   const { t, locale } = useI18n()
+  const isBase64Image = (post.image || "").startsWith("data:")
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(locale === "ru" ? "ru-RU" : locale === "uz" ? "uz-UZ" : "en-US", {
@@ -55,21 +30,26 @@ export function BlogCard({ post }: BlogCardProps) {
 
       {/* Image or YouTube Video */}
       <Link href={`/blog/${post.slug}`} className="relative cursor-pointer">
-        <div className="relative h-48 sm:h-52 md:h-56 overflow-hidden bg-gradient-to-br from-secondary to-secondary/50">
+        <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-secondary to-secondary/50">
           {post.youtubeLink ? (
             <iframe
               src={convertToYouTubeEmbedUrl(post.youtubeLink)}
               className="w-full h-full"
+              loading="lazy"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
               title={post.title[locale]}
             />
           ) : (
             <>
-              <img
+              <Image
                 src={post.image || "/placeholder.svg"}
                 alt={post.title[locale]}
-                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                fill
+                unoptimized={isBase64Image}
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-110"
+                loading="lazy"
               />
               {/* Gradient overlays */}
               <div className="absolute inset-0 bg-gradient-to-t from-background/80 via-background/20 to-transparent" />

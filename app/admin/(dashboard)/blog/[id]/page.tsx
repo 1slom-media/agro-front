@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Switch } from "@/components/ui/switch"
 import { ArrowLeft, Upload, X } from "lucide-react"
 import { blogApi } from "@/lib/api-client"
+import { getBlogPreviewImage } from "@/lib/youtube"
 import { useAdminTranslation } from "@/lib/admin-i18n"
 import type { AdminLocale } from "@/lib/admin-i18n"
 import { useToast } from "@/components/ui/use-toast"
@@ -321,14 +322,18 @@ export default function EditBlogPage() {
                   </p>
                 </div>
                 <Label>{t.blog.image}</Label>
-                {formData.featuredImageBase64 || formData.featuredImageUrl ? (
+                {getBlogPreviewImage(formData) !== "/placeholder.svg" ? (
                   <div className="relative w-full max-w-md h-64 rounded-lg overflow-hidden bg-muted">
                     <Image
-                      src={formData.featuredImageBase64 || formData.featuredImageUrl}
+                      src={getBlogPreviewImage(formData)}
                       alt="Blog image"
                       fill
+                      unoptimized={
+                        !!formData.featuredImageBase64 || !!formData.youtubeLink
+                      }
                       className="object-cover"
                     />
+                    {(formData.featuredImageBase64 || formData.featuredImageUrl) && (
                     <Button
                       type="button"
                       variant="destructive"
@@ -338,6 +343,7 @@ export default function EditBlogPage() {
                     >
                       <X className="h-4 w-4" />
                     </Button>
+                    )}
                   </div>
                 ) : (
                   <div className="relative">

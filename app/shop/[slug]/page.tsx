@@ -6,9 +6,8 @@ import { use, useEffect, useState } from "react"
 import { notFound } from "next/navigation"
 import Image from "next/image"
 import Link from "next/link"
-import Head from "next/head"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { StructuredData } from "@/components/structured-data"
 import { ProductGallery } from "@/components/product-gallery"
@@ -58,6 +57,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   const [product, setProduct] = useState<ApiProduct | null>(null)
   const [productLoading, setProductLoading] = useState(true)
   const [colorDict, setColorDict] = useState<any[]>([])
+  const [sellTypeDict, setSellTypeDict] = useState<any[]>([])
 
   useEffect(() => {
     const load = async () => {
@@ -68,6 +68,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         ])
         setProduct(data)
         setColorDict(dictRes?.color || [])
+        setSellTypeDict(dictRes?.selltype || [])
       } catch (e: any) {
         // If product not found (404), silently redirect to 404 page
         // Don't log as error since this is expected behavior for invalid slugs
@@ -96,6 +97,13 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
   if (!product) {
     notFound()
   }
+
+  const sellTypeValue = product.specifications?.sellType || ""
+  const sellTypeItem = sellTypeDict.find((s: any) => s.value === sellTypeValue)
+  const sellTypeLabel = sellTypeItem?.label?.[locale] || sellTypeItem?.label?.ru || ""
+  const priceUnit =
+    sellTypeLabel ||
+    (sellTypeValue === "za_paket" ? t.shop.perPackage : t.shop.perRoll)
 
   const handleOpenCalculator = () => {
     setCalculatorOpen(true)
@@ -307,7 +315,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
 
               <div className="text-2xl font-bold text-primary mb-4">
                 {formatPrice(product.price)} {t.common.sum}
-                <span className="text-sm font-normal text-muted-foreground ml-2">/ {t.shop.perRoll}</span>
+                <span className="text-sm font-normal text-muted-foreground ml-2">/ {priceUnit}</span>
               </div>
 
               {/* Specifications */}
@@ -501,7 +509,7 @@ export default function ProductPage({ params }: { params: Promise<{ slug: string
         </div>
       </main>
 
-      <Footer onOpenCalculator={handleOpenCalculator} />
+      <FooterLazy onOpenCalculator={handleOpenCalculator} />
 
       <CalculatorModal 
         open={calculatorOpen} 

@@ -5,6 +5,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
+import { normalizeImageUrl } from "@/lib/utils"
 
 interface ProductImage {
   url?: string
@@ -28,10 +29,12 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
   // Collect all available images - prioritize URL over base64 for performance
   const availableImages: string[] = []
   
-  // Helper to get best image source (URL preferred over base64)
+  // Helper to get best image source: URL first, then base64 fallback
   const getBestImage = (img?: ProductImage) => {
     if (!img) return null
-    return img.url || img.base64 || null
+    if (img.url) return normalizeImageUrl(img.url) || null
+    if (img.base64) return img.base64  // fallback when only base64 is stored
+    return null
   }
   
   const img1 = getBestImage(images.image1)
@@ -86,6 +89,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 src={image}
                 alt={`${productNameStr} - Thumbnail ${index + 1}`}
                 fill
+                unoptimized={image.startsWith("data:")}
                 className={`object-cover transition-opacity duration-300 ${
                   isLoading ? "opacity-0" : "opacity-100"
                 }`}
@@ -112,6 +116,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           src={availableImages[currentIndex]}
           alt={`${productNameStr} - Image ${currentIndex + 1}`}
           fill
+          unoptimized={availableImages[currentIndex].startsWith("data:")}
           className={`object-cover transition-opacity duration-300 ${
             mainImageLoading ? "opacity-0" : "opacity-100"
           }`}

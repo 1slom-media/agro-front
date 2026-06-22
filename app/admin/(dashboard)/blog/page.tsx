@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select"
 import { Plus, Pencil, Trash2 } from "lucide-react"
 import { blogApi } from "@/lib/api-client"
+import { getBlogPreviewImage } from "@/lib/youtube"
 import { useAdminTranslation } from "@/lib/admin-i18n"
 import type { AdminLocale } from "@/lib/admin-i18n"
 import { useToast } from "@/components/ui/use-toast"
@@ -197,16 +198,28 @@ export default function BlogPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {posts.map((post) => (
+              {posts.map((post) => {
+                const previewImage = getBlogPreviewImage(post)
+                return (
                 <TableRow key={post.id}>
                   <TableCell>
                     <div className="relative w-16 h-16 rounded-md overflow-hidden bg-muted">
                       <Image
-                        src={post.featuredImageBase64 || post.featuredImageUrl || "/placeholder.svg"}
+                        src={previewImage}
                         alt={post.title[locale]}
                         fill
+                        unoptimized={
+                          previewImage.startsWith("data:") || !!post.youtubeLink
+                        }
                         className="object-cover"
                       />
+                      {post.youtubeLink && !post.featuredImageUrl && !post.featuredImageBase64 && (
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/25 pointer-events-none">
+                          <span className="rounded bg-red-600 px-1 py-0.5 text-[9px] font-bold text-white">
+                            YT
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </TableCell>
                   <TableCell className="font-medium">{post.title[locale]}</TableCell>
@@ -244,7 +257,7 @@ export default function BlogPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))}
+              )})}
             </TableBody>
           </Table>
 

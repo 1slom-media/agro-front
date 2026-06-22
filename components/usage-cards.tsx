@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { UsageType } from "@/lib/products"
 import { Home, Sun, Sprout, Calculator, Grid3X3 } from "lucide-react"
@@ -78,10 +79,13 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
                 style={{ animationDelay: `${(index + 1) * 100}ms` }}
               >
                 <div className="relative h-48 sm:h-52 lg:h-56 overflow-hidden">
-                  <img
+                  <Image
                     src={usage.image || "/placeholder.svg"}
                     alt={usage.title}
-                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                    fill
+                    sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                    loading="lazy"
                   />
                   <div
                     className={`absolute inset-0 bg-gradient-to-t ${usage.color} to-card/90 via-transparent opacity-80 group-hover:opacity-60 transition-opacity duration-500`}
@@ -107,10 +111,12 @@ export function UsageCards({ onSelectUsage }: UsageCardsProps) {
                       </button>
                     </Link>
                     <button
+                      type="button"
                       onClick={() => {
                         const categoryId = categories.find((c: any) => c.slug === usage.id)?.id
                         onSelectUsage((usage.id as UsageType) || "open_field", categoryId)
                       }}
+                      aria-label={t.nav.calculator}
                       className="py-2.5 sm:py-3 px-3 sm:px-4 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 hover:shadow-lg cursor-pointer"
                     >
                       <Calculator className="h-4 w-4" />

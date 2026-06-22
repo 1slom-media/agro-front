@@ -1,21 +1,31 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import dynamic from "next/dynamic"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { HeroSection } from "@/components/hero-section"
 import { UsageCards } from "@/components/usage-cards"
-import { FeaturesSection } from "@/components/features-section"
-import { CalculatorModal } from "@/components/calculator-modal"
 import { ProductCard } from "@/components/product-card"
 import { BlogCard } from "@/components/blog-card"
-import { ContactFormSection } from "@/components/contact-form-section"
 import { type UsageType } from "@/lib/products"
 import { productsApi, blogApi, dictionaryApi } from "@/lib/api-client"
 import { useI18n } from "@/lib/i18n-context"
+import { getImageSource, normalizeImageUrl } from "@/lib/utils"
 import { ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
+
+const FeaturesSection = dynamic(
+  () => import("@/components/features-section").then((m) => m.FeaturesSection),
+)
+const ContactFormSection = dynamic(
+  () => import("@/components/contact-form-section").then((m) => m.ContactFormSection),
+)
+const CalculatorModal = dynamic(
+  () => import("@/components/calculator-modal").then((m) => m.CalculatorModal),
+  { ssr: false },
+)
 
 interface ApiProduct {
   id: string
@@ -31,6 +41,7 @@ interface ApiProduct {
     color?: string
     size?: string
     usage?: string[]
+    sellType?: string
   }
   isActive: boolean
   description?: { uz: string; ru: string; en: string }
@@ -69,7 +80,7 @@ export default function HomePage() {
     try {
       setLoading(true)
       const [productsRes, blogRes, dictRes] = await Promise.all([
-        productsApi.getAll({ page: 1, limit: 8 }),
+        productsApi.getAll({ page: 1, limit: 4 }),
         blogApi.getAll({ page: 1, limit: 3, isPublished: true }),
         dictionaryApi.getFilters(),
       ])
@@ -118,6 +129,11 @@ export default function HomePage() {
           sizeLabel = `${width} × ${length}`
         }
         
+        // Find sell type label from dictionary
+        const sellTypeValue = p.specifications?.sellType || ""
+        const sellTypeItem = (dictRes?.selltype || []).find((s: any) => s.value === sellTypeValue)
+        const sellTypeLabel = sellTypeItem?.label?.[locale] || sellTypeItem?.label?.ru || ""
+
         return {
           id: p.id,
           name: p.name[locale] || p.name.ru,
@@ -131,7 +147,10 @@ export default function HomePage() {
           length: length,
           size: sizeLabel,
           price: p.price || 0,
-          image: p.images?.image1?.url || p.images?.image1?.base64 || "/placeholder.svg",
+          sellType: sellTypeValue,
+          sellTypeLabel: sellTypeLabel,
+          // Use getImageSource to normalize relative URLs; no base64 for performance
+          image: getImageSource(p.images?.image1),
           description: p.description || { uz: "", ru: "", en: "" },
         }
       }))
@@ -139,7 +158,8 @@ export default function HomePage() {
       setFeaturedPosts(publishedPosts.map((p: ApiBlogPost) => ({
         id: p.id,
         slug: p.slug,
-        image: p.featuredImageBase64 || p.featuredImageUrl || "/placeholder.svg",
+        // URL preferred; fall back to base64 so post thumbnails always show
+        image: normalizeImageUrl(p.featuredImageUrl) || p.featuredImageBase64 || "/placeholder.svg",
         youtubeLink: p.youtubeLink,
         title: p.title,
         excerpt: p.excerpt || { uz: "", ru: "", en: "" },
@@ -209,7 +229,7 @@ export default function HomePage() {
               </div>
             ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6 lg:gap-8">
-              {featuredProducts.map((product, index) => (
+              {featuredProducts.slice(0, 4).map((product, index) => (
                 <div key={product.id} className="animate-fade-in-up" style={{ animationDelay: `${index * 50}ms` }}>
                   <ProductCard 
                     product={product} 
@@ -300,7 +320,7 @@ export default function HomePage() {
         <ContactFormSection />
       </main>
 
-      <Footer onOpenCalculator={() => handleOpenCalculator()} />
+      <FooterLazy onOpenCalculator={() => handleOpenCalculator()} />
 
       <CalculatorModal 
         open={calculatorOpen} 

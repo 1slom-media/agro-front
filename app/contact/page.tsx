@@ -4,7 +4,7 @@ import type React from "react"
 
 import { useState } from "react"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { useI18n } from "@/lib/i18n-context"
 import { Button } from "@/components/ui/button"
@@ -205,7 +205,7 @@ export default function ContactPage() {
         </div>
       </main>
 
-      <Footer onOpenCalculator={() => setCalculatorOpen(true)} />
+      <FooterLazy onOpenCalculator={() => setCalculatorOpen(true)} />
 
       <CalculatorModal open={calculatorOpen} onOpenChange={setCalculatorOpen} />
     </div>

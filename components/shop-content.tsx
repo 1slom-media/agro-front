@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from "react"
 import { useSearchParams } from "next/navigation"
 import { Header } from "@/components/header"
-import { Footer } from "@/components/footer"
+import { FooterLazy } from "@/components/footer-lazy"
 import { ProductCard } from "@/components/product-card"
 import { CalculatorModal } from "@/components/calculator-modal"
 import { useI18n } from "@/lib/i18n-context"
@@ -41,6 +41,7 @@ interface ApiProduct {
     color?: string
     size?: string
     usage?: string[]
+    sellType?: string
   }
   isActive: boolean
   description?: { uz: string; ru: string; en: string }
@@ -310,6 +311,11 @@ export function ShopContent() {
                       sizeLabel = `${width} × ${length}`
                     }
                     
+                    // Find sell type label from dictionary
+                    const sellTypeValue = product.specifications?.sellType || ""
+                    const sellTypeItem = filtersDict?.selltype?.find((s: any) => s.value === sellTypeValue)
+                    const sellTypeLabel = sellTypeItem?.label?.[locale] || sellTypeItem?.label?.ru || ""
+
                     const productForCard = {
                       id: product.id,
                       name: product.name[locale] || product.name.ru,
@@ -323,6 +329,9 @@ export function ShopContent() {
                       length: length,
                       size: sizeLabel || (width && length ? `${width} × ${length}` : ""),
                       price: product.price || 0,
+                      sellType: sellTypeValue,
+                      sellTypeLabel: sellTypeLabel,
+                      // Don't use base64 in listing cards (very heavy). Prefer URL only.
                       image: getImageSource(product.images?.image1),
                       description: product.description || { uz: "", ru: "", en: "" },
                     }
@@ -452,7 +461,7 @@ export function ShopContent() {
         </div>
       </main>
 
-      <Footer onOpenCalculator={() => handleOpenCalculator()} />
+      <FooterLazy onOpenCalculator={() => handleOpenCalculator()} />
 
       <CalculatorModal 
         open={calculatorOpen} 
