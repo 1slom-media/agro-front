@@ -5,6 +5,7 @@ import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { BlogPost } from "@/lib/blog"
 import { convertToYouTubeEmbedUrl } from "@/lib/youtube"
+import { shouldUnoptimizeImage } from "@/lib/utils"
 import { ArrowRight, Calendar } from "lucide-react"
 
 interface BlogCardProps {
@@ -13,7 +14,6 @@ interface BlogCardProps {
 
 export function BlogCard({ post }: BlogCardProps) {
   const { t, locale } = useI18n()
-  const isBase64Image = (post.image || "").startsWith("data:")
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString(locale === "ru" ? "ru-RU" : locale === "uz" ? "uz-UZ" : "en-US", {
@@ -46,7 +46,7 @@ export function BlogCard({ post }: BlogCardProps) {
                 src={post.image || "/placeholder.svg"}
                 alt={post.title[locale]}
                 fill
-                unoptimized={isBase64Image}
+                unoptimized={shouldUnoptimizeImage(post.image)}
                 sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 className="object-cover transition-transform duration-700 group-hover:scale-110"
                 loading="lazy"

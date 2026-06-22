@@ -5,6 +5,7 @@ import Link from "next/link"
 import Image from "next/image"
 import { useI18n } from "@/lib/i18n-context"
 import type { Product } from "@/lib/products"
+import { shouldUnoptimizeImage } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
 import { Calculator, ShoppingCart } from "lucide-react"
@@ -27,9 +28,6 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
   useEffect(() => {
     setImageLoading(true)
   }, [product.image])
-
-  // base64 data URIs cannot be optimized by next/image – skip optimization
-  const isBase64Image = (product.image || "").startsWith("data:")
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat(locale === "ru" ? "ru-RU" : "en-US").format(price)
@@ -54,7 +52,7 @@ export function ProductCard({ product, onCalculate }: ProductCardProps) {
             src={product.image || "/placeholder.svg"}
             alt={product.name}
             fill
-            unoptimized={isBase64Image}
+            unoptimized={shouldUnoptimizeImage(product.image)}
             className={`object-cover transition-all duration-700 group-hover:scale-110 ${
               imageLoading ? "opacity-0" : "opacity-100"
             }`}

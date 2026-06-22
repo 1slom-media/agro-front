@@ -37,3 +37,11 @@ export function getImageSource(
   if (image?.base64) return image.base64
   return "/placeholder.svg"
 }
+
+/** Skip Next.js image optimizer — remote/MinIO URLs load directly in the browser. */
+export function shouldUnoptimizeImage(url?: string): boolean {
+  if (!url) return false
+  if (url.startsWith("data:") || url.startsWith("blob:")) return true
+  const normalized = normalizeImageUrl(url) || url
+  return /^(https?:)?\/\//i.test(normalized)
+}

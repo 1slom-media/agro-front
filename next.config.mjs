@@ -26,6 +26,8 @@ const nextConfig = {
       // MinIO / CDN production (adjust hostname to your deployment)
       { protocol: "https", hostname: "minio.sunagro.uz", pathname: "/**" },
       { protocol: "http", hostname: "minio.sunagro.uz", pathname: "/**" },
+      { protocol: "https", hostname: "minio.snsratings.uz", pathname: "/**" },
+      { protocol: "http", hostname: "minio.snsratings.uz", pathname: "/**" },
       // YouTube thumbnails (blog admin preview)
       { protocol: "https", hostname: "img.youtube.com", pathname: "/**" },
       { protocol: "https", hostname: "i.ytimg.com", pathname: "/**" },

@@ -5,7 +5,7 @@ import Image from "next/image"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Skeleton } from "@/components/ui/skeleton"
-import { normalizeImageUrl } from "@/lib/utils"
+import { normalizeImageUrl, shouldUnoptimizeImage } from "@/lib/utils"
 
 interface ProductImage {
   url?: string
@@ -89,7 +89,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
                 src={image}
                 alt={`${productNameStr} - Thumbnail ${index + 1}`}
                 fill
-                unoptimized={image.startsWith("data:")}
+                unoptimized={shouldUnoptimizeImage(image)}
                 className={`object-cover transition-opacity duration-300 ${
                   isLoading ? "opacity-0" : "opacity-100"
                 }`}
@@ -116,7 +116,7 @@ export function ProductGallery({ images, productName }: ProductGalleryProps) {
           src={availableImages[currentIndex]}
           alt={`${productNameStr} - Image ${currentIndex + 1}`}
           fill
-          unoptimized={availableImages[currentIndex].startsWith("data:")}
+          unoptimized={shouldUnoptimizeImage(availableImages[currentIndex])}
           className={`object-cover transition-opacity duration-300 ${
             mainImageLoading ? "opacity-0" : "opacity-100"
           }`}
